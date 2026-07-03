@@ -251,7 +251,7 @@ In EDA we can see the age effect is *non-monotonic* for both dog and cat: the yo
   operating threshold, would stop a future regime shift from silently degrading the
   flag.
 
-- **Post-intake signals** — *addresses "only intake-day information is used".*
+- **Post-intake signals** — *addresses "only intake-day information is used".*  
   The model deliberately scores an animal on day one, which likely caps AUC at
   ~0.70–0.75. If later signals (behavioral assessments, medical updates, photos)
   were incorporated as they arrive, a second-stage model could refine the day-one
@@ -260,7 +260,7 @@ In EDA we can see the age effect is *non-monotonic* for both dog and cat: the yo
 ## 8. Lessons learned
 
 - **I didn't fully understand the business problem in the beginning**  
-My initial instinct was to predict whether an animal would be adopted. Only when writing the report did I realize this missed the shelter's real pain point: limited space and capacity, where the true strain comes from animals that stay stuck for a long time. I therefore redefined the target from is_adopted to is_long_stay, shifting the focus from "Will this animal be adopted?" to "Will it occupy space long-term, so staff can intervene early?
+My initial instinct was to predict whether an animal would be adopted. Only when writing the report did I realize this missed the shelter's real pain point: limited space and capacity, where the true strain comes from animals that stay stuck for a long time. I therefore redefined the target from is_adopted to is_long_stay, shifting the focus from "Will this animal be adopted?" to "Will it occupy space long-term, so staff can intervene early?"
 
 
 - **Changing the business problem forces the data-cleaning logic to be re-audited.**  

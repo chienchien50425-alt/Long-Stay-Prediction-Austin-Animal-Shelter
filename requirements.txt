@@ -1,4 +1,4 @@
-Python = 3.13
+# Python = 3.13
 # Core data science / modeling stack (03_modeling.ipynb) — exact versions read from the live aac-model kernel env
 pandas==3.0.0
 numpy==2.4.1
@@ -7,9 +7,6 @@ xgboost==3.2.0
 shap==0.52.0
 matplotlib==3.10.9
 seaborn==0.13.2
-
-# EDA (notebooks/02_eda.ipynb)
-sweetviz==2.3.3
 
 # Jupyter runtime
 ipykernel==7.2.0
