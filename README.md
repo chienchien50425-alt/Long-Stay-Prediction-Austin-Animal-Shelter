@@ -33,7 +33,7 @@ reason (an *outcome* record). This project uses the full history from **October 
 After matching each departure back to the arrival record and narrowing to dogs and
 cats, the analysis runs on **162,932 animal stays**.
 
-> **Included in this repo — no download needed.** Both raw exports are committed under
+> **Included in this repo, no download needed.** Both raw exports are committed under
 > [`data/raw_dataset/`](data/raw_dataset/) (Intakes ≈ 29 MB, Outcomes ≈ 24 MB), so the
 > full pipeline runs without touching the portal. **Data license: Public Domain** (City of
 > Austin Open Data Portal).
