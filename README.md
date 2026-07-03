@@ -244,6 +244,9 @@ All data come from Austin Animal Center and only
 
 ## 7. Future work
 
+- **Integrating post-migration data**  
+Building a data bridge between the legacy and modern systems. By developing a crosswalk logic to reconcile the differing ID schemas, integrate post-migration records, update our ETL pipeline, and transition this historical analysis into a real-time predictive tool.
+
 - **Calibrated probabilities** — *addresses "predicted probabilities systematically overstate long-stay risk".*  
   The per-fold class weighting that fixes imbalance
   also inflates minority-class scores, so raw outputs must not be read as literal
