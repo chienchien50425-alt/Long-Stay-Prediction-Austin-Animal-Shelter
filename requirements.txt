@@ -1,5 +1,4 @@
-# Python 3.13 — versions captured via pip freeze on the environment used for 03_modeling.ipynb
-
+Python = 3.13
 # Core data science / modeling stack (03_modeling.ipynb) — exact versions read from the live aac-model kernel env
 pandas==3.0.0
 numpy==2.4.1
