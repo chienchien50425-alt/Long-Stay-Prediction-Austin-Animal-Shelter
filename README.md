@@ -34,7 +34,7 @@ After matching each departure back to the arrival record and narrowing to dogs a
 cats, the analysis runs on **162,932 animal stays**.
 
 > **Included in this repo — no download needed.** Both raw exports are committed under
-> [`data/raw_dataset/`](data/raw%20dataset/) (Intakes ≈ 29 MB, Outcomes ≈ 24 MB), so the
+> [`data/raw_dataset/`](data/raw_dataset/) (Intakes ≈ 29 MB, Outcomes ≈ 24 MB), so the
 > full pipeline runs without touching the portal. **Data license: Public Domain** (City of
 > Austin Open Data Portal).
 
@@ -163,7 +163,7 @@ Age ranks first, and its red/blue spread on both sides is the non-monotonic effe
 
 Each dot is one cat; x-position is the feature's push (right = toward long-stay, left = toward faster exit); color is the feature's value (for age, red = older; for 0/1 features, red = present).  
 
-Age ranks first with a non-monotonic red/blue spread. Sex_Unknown: present (red) pushes strongly left; These intakes are overwhelmingly newborn kittens (median age 22 days) transferred out on day 0 (~86% transfer, ~0% adoption) — likely too young to be sexed at intake, and routed straight to foster/rescue rather than entering the shelter pipeline. In contrast, Owner-surrender, nursing and injured push toward long-stay.
+Age ranks first with a non-monotonic red/blue spread. Sex_Unknown: present (red) pushes strongly left; These intakes are overwhelmingly newborn kittens (median age 22 days) transferred out on day 0 (~86% transfer, ~0% adoption), likely too young to be sexed at intake, and routed straight to foster/rescue rather than entering the shelter pipeline. In contrast, Owner-surrender, nursing and injured push toward long-stay.
 
 
 <br clear="left"/>
@@ -283,21 +283,23 @@ When I switched the target from is_adopted to is_long_stay, I kept the original 
 ```
 .
 ├── data/
-│   ├── raw_dataset/        # two raw Austin exports, committed (note: folder name has a space;
-│   │                       #   filenames carry a _20260523 date stamp)
+│   ├── raw_dataset/        # two raw Austin exports, committed
+│   │                       #   (filenames carry a _20260523 date stamp)
 │   └── processed/
 │       └── df_full_merged.csv   # cleaned, merged, dog/cat-only (162,932 rows)
 ├── notebooks/
 │   ├── 01_cleaning.ipynb
 │   ├── 02_eda.ipynb
 │   └── 03_modeling.ipynb
-└── README.md
+├── LICENSE                 # MIT License (covers the code)
+├── README.md
+└── requirements.txt        # pinned dependencies (Python 3.13)
 ```
 
 **Reproducing:**
 
 No data download is required — both raw CSVs are already committed under
-[`data/raw_dataset/`](data/raw%20dataset/) (**license: Public Domain**, City of Austin Open
+[`data/raw_dataset/`](data/raw_dataset/) (**license: Public Domain**, City of Austin Open
 Data Portal). Install the dependencies and run the notebooks in order:
 
 ```bash
