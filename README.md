@@ -261,7 +261,7 @@ When I switched the target from is_adopted to is_long_stay, I kept the original 
 
 ---
 
-## 8. Pipeline & repository
+## 9. Pipeline & repository
 
 ```
 01_cleaning.ipynb  →  02_eda.ipynb  →  03_modeling.ipynb
@@ -317,10 +317,7 @@ pinned environment, not guaranteed bit-for-bit across machines.
   (`mutual_info_classif(..., random_state=42)`). Those steps are reproducible run-to-run.
 - **LogisticRegression is *not* explicitly seeded.** It is built as
   `LogisticRegression(max_iter=2000, C=1.0, class_weight='balanced')` with no `random_state`.
-  Its default `lbfgs` solver is deterministic, so results are stable — but the seed is not
-  pinned there, so this is not an "all models seeded" guarantee.
-- **`01_cleaning.ipynb` has no random operations** (merge / filter / rename only), so it
-  needs no seed.
+  Its default `lbfgs` solver is deterministic, so results are stable.
 - **Numerical reproducibility depends on the pinned environment** — Python 3.13,
   `pandas==3.0.0`, `numpy==2.4.1` (`03_modeling` was run locally on this stack). Cleaning was
   done on **pandas 3.0**, and pandas changed `merge_asof` and timezone-parsing behaviour
