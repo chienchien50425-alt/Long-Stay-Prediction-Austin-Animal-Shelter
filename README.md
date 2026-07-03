@@ -71,7 +71,7 @@ Stage 1 · Raw Data Sources — Two CSV exports from the City of Austin Open Dat
 
 Stage 2 · Clean & Merge (01_cleaning) — Python/pandas notebook that aligns both exports to a shared schema and backward-merges intakes with outcomes into one row per outcome event.  
 
-Stage 3 · Processed Dataset — Writes df_full_merged.csv to disk (162,465 rows × 26 columns, filtered to dogs & cats). This single file is the source every downstream notebook reads from.  
+Stage 3 · Processed Dataset — Writes df_full_merged.csv to disk (162,932 rows × 26 columns, filtered to dogs & cats). This single file is the source every downstream notebook reads from.  
 
 Stage 4 · EDA (02_eda) — Exploratory analysis; its findings inform the feature choices used in modeling.  
 
@@ -98,14 +98,14 @@ Stage 5 · Modeling (03_modeling) — Predicts is_long_stay separately per speci
   - Keep *Spay/neuter vs. age*:  These two are correlated (r ≈ 0.41 dog, 0.59 cat), raising a
   redundancy worry. Dropping the spay/neuter slightly lowered validation AUC for both species (Δ ≈ −0.003) in LR, drop will slightly hurt performance.
 - Handling imbalance  
-Long-stay cases are the minority class (dog ≈ 0.17-0.33, cat ≈ 0.17-0.34). Re-weighting the positive class (`class_weight='balanced'` for LR and `scale_pos_weight` for XGBoost). 
+Long-stay cases are the minority class (dog ≈ 0.17-0.33, cat ≈ 0.27-0.34). Re-weighting the positive class (`class_weight='balanced'` for LR and `scale_pos_weight` for XGBoost). 
 
 ### Features — how each input is selected, encoded, or cleaned before modeling
  
 | Feature handling | Dog | Cat | Where decided |
 |---|---|---|---|
 | Selected feature set | intake reason, breed, health condition, sex, age, `is_sn`, `is_mix` | same seven | MI / Pearson screening |
-| Dropped features | colour (primary/secondary/pattern), intake month | same | Near-floor MI (≤ 0.0013) |
+| Dropped features | colour (primary/secondary/pattern), intake month | same | Near-floor MI (≤ 0.008) |
 | Breed encoding | top-20 + Other | top-4 + Other | Top-4 covers 97.7% of cats; ablation test kept it |
 | `is_sn` (spay/neuter) | kept | kept | Collinearity ablation (Δ AUC ≈ −0.003) |
 | Age (XGBoost) | raw `age_at_intake_days` | same | Tree model, scale-invariant |
@@ -172,10 +172,10 @@ In EDA we can see the age effect is *non-monotonic* for both dog and cat: the yo
 
 ### Model & methodology
 
-- **Precision at the operating threshold is ≈0.40 (XGBoost).** The thresholds maximize
+- **Precision at the operating threshold is ≈0.42 (XGBoost).** The thresholds maximize
   F1 on pooled 2022–2023 out-of-sample predictions, but the resulting operating point is
-  recall-heavy. On the 2024 test fold, XGBoost reaches recall 0.711 (dog) / 0.753 (cat)
-  at precision 0.404 / 0.418. In practice, roughly 2 of every 5 flagged animals actually
+  recall-heavy. On the 2024 test fold, XGBoost reaches recall 0.716 (dog) / 0.748 (cat)
+  at precision 0.424 / 0.419. In practice, roughly 2 of every 5 flagged animals actually
   become long-stays, and for a shelter with limited staff the false positives are a real
   operational cost. Since shelter capacity was unknown when the threshold was set, recall
   and precision can be re-balanced along the PR curve to match actual operational needs.
@@ -193,7 +193,7 @@ In EDA we can see the age effect is *non-monotonic* for both dog and cat: the yo
   The dog long-stay rate jumped structurally in 2023 and dog XGBoost AUC dropped from 0.766
   to 0.694; none of the recorded intake fields explain the shift, so the dog model is
   inherently less trustworthy than the cat model. More broadly, the long-stay base rate
-  drifts for both species (24.6% in 2022, 30.7% in 2023, 28.9% in 2024). The pipeline has
+  drifts for both species (24.6% in 2022, 30.7% in 2023, 29.7% in 2024). The pipeline has
   no drift detection, so a future shift of the same kind would silently degrade
   performance, and the fixed operating threshold would need periodic re-tuning as base
   rates move.
@@ -242,7 +242,7 @@ In EDA we can see the age effect is *non-monotonic* for both dog and cat: the yo
 
 | Notebook | What it does |
 |----------|--------------|
-| **01_cleaning** | Aligns both raw exports to a shared snake_case schema; normalises mixed-timezone dates; backward `merge_asof` join of each outcome to its most recent prior intake; drops orphans/duplicates; parses sex/breed/colour; engineers the `is_long_stay` target and intake-time features; filters to dogs & cats → `df_full_merged.csv` (162,465 rows). |
+| **01_cleaning** | Aligns both raw exports to a shared snake_case schema; normalises mixed-timezone dates; backward `merge_asof` join of each outcome to its most recent prior intake; drops orphans/duplicates; parses sex/breed/colour; engineers the `is_long_stay` target and intake-time features; filters to dogs & cats → `df_full_merged.csv` (162,932 rows). |
 | **02_eda** | Per-species univariate, bivariate (long-stay rate by feature), and temporal analysis; correlation heatmaps and mutual-information screening against the target. EDA only — no modelling. |
 | **03_modeling** | Time-aware folds; per-species Logistic Regression + XGBoost; feature ablations on the validation fold; back-test on 2024; threshold selection; confusion matrices; SHAP interpretation. |
 
@@ -251,7 +251,7 @@ In EDA we can see the age effect is *non-monotonic* for both dog and cat: the yo
 ├── data/
 │   ├── raw dataset/        # two raw Austin Open Data exports (intakes, outcomes)
 │   └── processed/
-│       └── df_full_merged.csv   # cleaned, merged, dog/cat-only (162,465 rows)
+│       └── df_full_merged.csv   # cleaned, merged, dog/cat-only (162,932 rows)
 ├── notebooks/
 │   ├── 01_cleaning.ipynb
 │   ├── 02_eda.ipynb
