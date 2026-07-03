@@ -157,7 +157,8 @@ Age ranks first with a non-monotonic red/blue spread. Sex_Unknown: present (red)
 <br clear="left"/>
 <br><br>
 
-<img align="left" width="550" src="https://github.com/user-attachments/assets/10d8f1d2-84e4-47a4-833c-ea15ff4ee54c" />
+<img align="left" width="550" src="https://github.com/user-attachments/assets/8d738622-18d3-49cf-989c-1805516bfe98" />
+
 
 
 **Figure 6. Long-stay rate by age at intake, dogs vs cats**  
