@@ -30,6 +30,3 @@ notebooks/new system/
 
 # Local-only Azure SQL upload notebook
 notebooks/upload to azure SQL server.ipynb
-
-# ignore
-.gitignore
