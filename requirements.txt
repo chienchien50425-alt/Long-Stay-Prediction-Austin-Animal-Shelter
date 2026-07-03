@@ -11,7 +11,5 @@ seaborn==0.13.2
 # Jupyter runtime
 ipykernel==7.2.0
 requests==2.34.2
-
-# Not installed in the 03_modeling env — left at original specifier (install separately if a notebook needs them)
 imbalanced-learn>=0.12.0
 jupyter>=1.0.0
