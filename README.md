@@ -117,8 +117,8 @@ Long-stay cases are the minority class (dog ≈ 0.17-0.33, cat ≈ 0.27-0.34). R
 | Feature handling | Dog | Cat | Where decided |
 |---|---|---|---|
 | Selected feature set | intake reason, breed, health condition, sex, age, `is_sn`, `is_mix` | same seven | MI / Pearson screening |
-| Dropped features | colour (primary/secondary/pattern), intake month | same | Near-floor MI (≤ 0.008) |
-| Breed encoding | top-20 + Other | top-4 + Other | Top-4 covers 97.7% of cats; ablation test kept it |
+| Dropped features | colour (primary/secondary/pattern), intake month | same | Near-floor MI (≤ 0.008) for both species |
+| Breed encoding | top-20 + Other | top-4 + Other | Cat breed MI ≈ 0.001, but MI misses interactions; ablation was neutral (+0.0013 AUC). Kept for feature set parity |
 | `is_sn` (spay/neuter) | kept | kept | Collinearity ablation (Δ AUC ≈ −0.003) |
 | Age (XGBoost) | raw `age_at_intake_days` | same | Tree model, scale-invariant |
 | Age (Logistic Reg.) | 8 buckets: <2mo … 15yr+ | same | EDA |
@@ -347,7 +347,7 @@ pinned environment, not guaranteed bit-for-bit across machines.
 
 ```
 Wei Ling Chien (2026). Predicting Long-Stay Shelter Animals — Austin Animal Center.
-GitHub: <REPO_URL>
+GitHub: https://github.com/chienchien50425-alt/austin-animal-center
 ```
 
 **Acknowledgements:** City of Austin and Austin Animal Center for publishing the open
