@@ -1,5 +1,12 @@
 # Predicting Long-Stay Shelter Animals — Austin Animal Center (2013–2025)
 
+<p align="center">
+  <img src="https://img.shields.io/badge/Python-3.9+-blue.svg">
+  <img src="https://img.shields.io/badge/Model-XGBoost-orange.svg">
+  <img src="https://img.shields.io/badge/Status-Completed-success.svg">
+  <img src="https://img.shields.io/github/repo-size/chienchien50425-alt/austin-animal-center">
+</p>
+
 > Flagging the dogs and cats most likely to get stuck in the shelter, **on the day they
 > arrive**, so staff can step in early instead of reacting weeks too late.
 
