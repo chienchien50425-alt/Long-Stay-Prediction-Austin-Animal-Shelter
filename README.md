@@ -173,15 +173,17 @@ In EDA we can see the age effect is *non-monotonic* for both dog and cat: the yo
 
 ### Model & methodology
 
-- **Precision at the operating threshold is ≈0.42 (XGBoost).** The thresholds maximize
+- **Precision at the operating threshold is ≈0.42 (XGBoost).**
+  The thresholds maximize
   F1 on pooled 2022–2023 out-of-sample predictions, but the resulting operating point is
   recall-heavy. On the 2024 test fold, XGBoost reaches recall 0.716 (dog) / 0.748 (cat)
   at precision 0.424 / 0.419. In practice, roughly 2 of every 5 flagged animals actually
   become long-stays, and for a shelter with limited staff the false positives are a real
-  operational cost. Since shelter capacity was unknown when the threshold was set, recall
-  and precision can be re-balanced along the PR curve to match actual operational needs.
+  operational cost. Since shelter capacity was unknown when the threshold was set, *recall
+  and precision can be re-balanced along the PR curve to match actual operational needs.*
 
-- **Predicted probabilities systematically overstate long-stay risk.** On the pooled
+- **Predicted probabilities systematically overstate long-stay risk.**
+  On the pooled
   reliability curves, every point for both species lies below the diagonal: e.g., dogs
   scored around 0.8 by XGBoost actually long-stay at only ~52%, and cats scored around
   0.8 at ~67%. This is a known consequence of per-fold class weighting, which inflates
@@ -190,7 +192,7 @@ In EDA we can see the age effect is *non-monotonic* for both dog and cat: the yo
   probabilities. If trustworthy probabilities are ever needed, an isotonic or Platt
   calibrator must be fit on a held-out fold.
 
-- **The 2023 dog regime shift is unexplained, and the base rate keeps drifting.**
+- **The 2023 dog regime shift is unexplained, and the base rate keeps drifting.**  
   The dog long-stay rate jumped structurally in 2023 and dog XGBoost AUC dropped from 0.766
   to 0.694; none of the recorded intake fields explain the shift, so the dog model is
   inherently less trustworthy than the cat model. More broadly, the long-stay base rate
@@ -232,6 +234,12 @@ In EDA we can see the age effect is *non-monotonic* for both dog and cat: the yo
 
 ## 7. Lesson learn
 
+- **I did't fully understand the business problem in the beginning**  
+My initial instinct was to predict whether an animal would be adopted. Only when writing the report did I realize this missed the shelter's real pain point: limited space and capacity, where the true strain comes from animals that stay stuck for a long time. I therefore redefined the target from is_adopted to is_long_stay, shifting the focus from "Will this animal be adopted?" to "Will it occupy space long-term, so staff can intervene early?
+
+
+- **Changing the business problem forces the data-cleaning logic to be re-audited.**  
+When I switched the target from is_adopted to is_long_stay, I kept the original data-cleaning pipeline unchanged, and that inherited logic silently biased the dataset. Because the merge was keyed on outcomes, any animal still in the shelter — which has no outcome yet — was dropped entirely, and those are exactly the longest-staying animals the new target was meant to find. I recognized the problem and added back 467 still-in-shelter animals as confirmed long stays and restoring the population the inherited merge had removed.
 
 ---
 
