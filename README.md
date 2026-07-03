@@ -38,7 +38,7 @@ get stuck** — while they still have their best shot at a fast placement. That'
 that matters operationally: the earlier a future long-stay animal is identified, the more
 levers (foster, marketing, behavioural help) the shelter still has to pull.
 
-The operating threshold is chosen to **maximise F1** — the point that best balances catching as many future long-stay animals as possible (recall) against the operational load of chasing false alarms (precision). At that balance point the flag happens to lean toward recall (~0.71–0.75) over precision (~0.40), which suits a triage tool: an unnecessary early foster nudge costs lower than a missed long-stay animal costs real kennel-weeks. The flag is built to rank and prioritise.
+The operating threshold is chosen to **maximise F1**, the point that best balances catching as many future long-stay animals as possible (recall) against the operational load of chasing false alarms (precision). At that balance point the flag happens to lean toward recall (~0.71–0.75) over precision (~0.40), which suits a triage tool: an unnecessary early foster nudge costs lower than a missed long-stay animal costs real kennel-weeks. The flag is built to rank and prioritise.
 
 For the technically inclined, here are the underlying numbers, back-tested on a held-out
 future year (2024) the models never saw during development:
