@@ -307,8 +307,7 @@ pip install -r requirements.txt   # or: pandas numpy scikit-learn xgboost shap m
 ```
 
 > ⚠️ **Filename convention — don't rename these.** `01_cleaning.ipynb` reads the two raw
-> files by their **exact paths** via `FULL_INTAKES_PATH` / `FULL_OUTCOMES_PATH`. Two things
-> to watch: the folder name **contains a space** (`raw dataset`), and each filename carries a
+> files by their **exact paths** via `FULL_INTAKES_PATH` / `FULL_OUTCOMES_PATH`. Each filename carries a
 > **date-stamp suffix** `_20260523`. If you re-export fresh data from the portal, that date
 > stamp will differ and the notebook will fail to find the file — either rename the new
 > export to match, or edit those two path variables in `01_cleaning.ipynb`.
