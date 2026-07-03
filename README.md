@@ -1,14 +1,14 @@
 # Predicting Long-Stay Shelter Animals — Austin Animal Center (2013–2025)
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Python-3.9+-blue.svg">
+  <img src="https://img.shields.io/badge/Python-3.13-blue.svg">
   <img src="https://img.shields.io/badge/Model-XGBoost-orange.svg">
   <img src="https://img.shields.io/badge/Status-Completed-success.svg">
   <img src="https://img.shields.io/github/repo-size/chienchien50425-alt/austin-animal-center">
 </p>
 
 > Flagging the dogs and cats most likely to get stuck in the shelter, **on the day they
-> arrive**, so staff can step in early instead of reacting weeks too late.
+> arrive**, so staff can step in early instead of reacting weeks too late - the model catches roughly 7 to 8 out of every 10 animals that would go on to get stuck.
 
 ---
 
@@ -34,7 +34,7 @@ After matching each departure back to the arrival record and narrowing to dogs a
 cats, the analysis runs on **162,932 animal stays**.
 
 > **Included in this repo — no download needed.** Both raw exports are committed under
-> [`data/raw dataset/`](data/raw%20dataset/) (Intakes ≈ 29 MB, Outcomes ≈ 24 MB), so the
+> [`data/raw_dataset/`](data/raw%20dataset/) (Intakes ≈ 29 MB, Outcomes ≈ 24 MB), so the
 > full pipeline runs without touching the portal. **Data license: Public Domain** (City of
 > Austin Open Data Portal).
 
@@ -62,8 +62,8 @@ future year (2024) the models never saw during development:
 | Cat | XGBoost | 0.747 | 0.419 | 0.748 | 0.537 |
 | Cat | Logistic Reg. | 0.711 | 0.462 | 0.665 | 0.545 |
 
-*Scored on the 2024 test year at the chosen threshold (To maximise F1 on
-the earlier 2022–2023 data).*
+*Scored on the 2024 test year at the chosen threshold (to maximise F1 on the earlier 2022–2023 data).*
+*Baseline was established using LR approach, while XGBoost was employed as the principal predictive model.*
 
 | <img width="400" alt="Untitled design" src="https://github.com/user-attachments/assets/2dd803e2-433c-4653-9a99-79350efccdbb" /> | <img width="750" alt="image" src="https://github.com/user-attachments/assets/55b5bf1f-0727-4e78-9b37-1e6921526f20" /> |
 | :---: | :---: |
@@ -129,7 +129,7 @@ Long-stay cases are the minority class (dog ≈ 0.17-0.33, cat ≈ 0.27-0.34). R
  
 | Setting | Dog | Cat | Where decided |
 |---|---|---|---|
-| Long-stay threshold (target) | > 30 days | > 30 days |  From shelters announcement |
+| Long-stay threshold (target) | > 30 days | > 30 days |  From shelter's announcement |
 | Operating threshold (XGBoost) | 0.417 | 0.455 | Max-F1 on pooled 2022–2023 |
 | Operating threshold (Logistic Reg.) | 0.446 | 0.517 | Same |
 | Class imbalance | per-fold `scale_pos_weight` (XGB) / balanced weights (LR) | same | Recomputed per fold as base rate drifts |
@@ -241,7 +241,7 @@ In EDA we can see the age effect is *non-monotonic* for both dog and cat: the yo
 - **Calibrated probabilities** — *addresses "predicted probabilities systematically overstate long-stay risk".*  
   The per-fold class weighting that fixes imbalance
   also inflates minority-class scores, so raw outputs must not be read as literal
-  probabilities. If actual possibility scores are ever needed, fitting an isotonic or Platt calibrator on a held-out fold would let
+  probabilities. If actual probability scores are ever needed, fitting an isotonic or Platt calibrator on a held-out fold would let
   the scores be interpreted as true probabilities.
 
 - **Drift monitoring and threshold re-tuning** — *addresses "no drift detection, and the base rate keeps drifting".*  
@@ -259,12 +259,12 @@ In EDA we can see the age effect is *non-monotonic* for both dog and cat: the yo
 
 ## 8. Lessons learned
 
-- **I did't fully understand the business problem in the beginning**  
+- **I didn't fully understand the business problem in the beginning**  
 My initial instinct was to predict whether an animal would be adopted. Only when writing the report did I realize this missed the shelter's real pain point: limited space and capacity, where the true strain comes from animals that stay stuck for a long time. I therefore redefined the target from is_adopted to is_long_stay, shifting the focus from "Will this animal be adopted?" to "Will it occupy space long-term, so staff can intervene early?
 
 
 - **Changing the business problem forces the data-cleaning logic to be re-audited.**  
-When I switched the target from is_adopted to is_long_stay, I kept the original data-cleaning pipeline unchanged, and that inherited logic silently biased the dataset. Because the merge was keyed on outcomes, any animal still in the shelter — which has no outcome yet — was dropped entirely, and those are exactly the longest-staying animals the new target was meant to find. I recognized the problem and added back 467 still-in-shelter animals as confirmed long stays and restoring the population the inherited merge had removed.
+When I switched the target from is_adopted to is_long_stay, I kept the original data-cleaning pipeline unchanged, and that inherited logic silently biased the dataset. Because the merge was keyed on outcomes, any animal still in the shelter, which has no outcome yet — was dropped entirely, and those are exactly the longest-staying animals the new target was meant to find. I recognized the problem and added back 467 still-in-shelter animals as confirmed long stays and restored the population the inherited merge had removed.
 
 ---
 
@@ -283,7 +283,7 @@ When I switched the target from is_adopted to is_long_stay, I kept the original 
 ```
 .
 ├── data/
-│   ├── raw dataset/        # two raw Austin exports, committed (note: folder name has a space;
+│   ├── raw_dataset/        # two raw Austin exports, committed (note: folder name has a space;
 │   │                       #   filenames carry a _20260523 date stamp)
 │   └── processed/
 │       └── df_full_merged.csv   # cleaned, merged, dog/cat-only (162,932 rows)
@@ -297,7 +297,7 @@ When I switched the target from is_adopted to is_long_stay, I kept the original 
 **Reproducing:**
 
 No data download is required — both raw CSVs are already committed under
-[`data/raw dataset/`](data/raw%20dataset/) (**license: Public Domain**, City of Austin Open
+[`data/raw_dataset/`](data/raw%20dataset/) (**license: Public Domain**, City of Austin Open
 Data Portal). Install the dependencies and run the notebooks in order:
 
 ```bash
