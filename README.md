@@ -174,7 +174,7 @@ In EDA we can see the age effect is *non-monotonic* for both dog and cat: the yo
 
 ---
 
-## 6. Limitation
+## 6. Limitations
 
 ### Model & methodology
 
@@ -237,7 +237,7 @@ In EDA we can see the age effect is *non-monotonic* for both dog and cat: the yo
 ---
 
 
-## 7. Lesson learn
+## 7. Lessons learned
 
 - **I did't fully understand the business problem in the beginning**  
 My initial instinct was to predict whether an animal would be adopted. Only when writing the report did I realize this missed the shelter's real pain point: limited space and capacity, where the true strain comes from animals that stay stuck for a long time. I therefore redefined the target from is_adopted to is_long_stay, shifting the focus from "Will this animal be adopted?" to "Will it occupy space long-term, so staff can intervene early?
