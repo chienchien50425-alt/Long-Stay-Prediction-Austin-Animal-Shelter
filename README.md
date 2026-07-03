@@ -194,17 +194,14 @@ In EDA we can see the age effect is *non-monotonic* for both dog and cat: the yo
   0.8 at ~67%. This is a known consequence of per-fold class weighting, which inflates
   minority-class probabilities. The curves remain monotonic, so ranking (AUC) and
   thresholded flags are unaffected, but the raw scores must not be read as literal
-  probabilities. If trustworthy probabilities are ever needed, an isotonic or Platt
-  calibrator must be fit on a held-out fold.
+  probabilities.
 
 - **The 2023 dog regime shift is unexplained, and the base rate keeps drifting.**  
   The dog long-stay rate jumped structurally in 2023 and dog XGBoost AUC dropped from 0.766
   to 0.694; none of the recorded intake fields explain the shift, so the dog model is
   inherently less trustworthy than the cat model. More broadly, the long-stay base rate
   drifts for both species (24.6% in 2022, 30.7% in 2023, 29.7% in 2024). The pipeline has
-  no drift detection, so a future shift of the same kind would silently degrade
-  performance, and the fixed operating threshold would need periodic re-tuning as base
-  rates move.
+  no drift detection, so a future shift of the same kind would silently degrade performance.
 
 - **Only intake-day information is used (7 features per species).** No behavioral
   assessments, photos, or any post-intake signal. This is by design (the model must
@@ -221,10 +218,6 @@ In EDA we can see the age effect is *non-monotonic* for both dog and cat: the yo
   an already-used intake (274 rows), duplicates, and impossible dates were dropped.
   Total losses are under 1%, but mismatches cannot be fully ruled out.
 
-- **Breed information is heavily simplified.** Only the first listed breed is kept as
-  `primary_breed` (a "Border Terrier/Border Collie" becomes Border Terrier plus an
-  `is_mix` flag), and dogs span 211 recorded breeds of which 100 have fewer than 50 rows.
-
 - **Intake status does not guarantee adoption eligibility.** Per the Austin Animal
   Center metadata, intake records represent the status of animals as they arrive at
   the shelter; the data does not indicate whether an animal was ever eligible for
@@ -236,8 +229,28 @@ In EDA we can see the age effect is *non-monotonic* for both dog and cat: the yo
   regions, or species.
 ---
 
+## 7. Future work
 
-## 7. Lessons learned
+- **Calibrated probabilities** — *addresses "predicted probabilities systematically overstate long-stay risk".*  
+  The per-fold class weighting that fixes imbalance
+  also inflates minority-class scores, so raw outputs must not be read as literal
+  probabilities. If actual possibility scores are ever needed, fitting an isotonic or Platt calibrator on a held-out fold would let
+  the scores be interpreted as true probabilities.
+
+- **Drift monitoring and threshold re-tuning** — *addresses "no drift detection, and the base rate keeps drifting".*  
+  The long-stay base rate moves year to year
+  (24.6% → 30.7% → 29.7%), and the pipeline currently has no way to notice. Adding a
+  base-rate / PSI drift check on incoming data, plus a scheduled re-tune of the
+  operating threshold, would stop a future regime shift from silently degrading the
+  flag.
+
+- **Post-intake signals** — *addresses "only intake-day information is used".*
+  The model deliberately scores an animal on day one, which likely caps AUC at
+  ~0.70–0.75. If later signals (behavioral assessments, medical updates, photos)
+  were incorporated as they arrive, a second-stage model could refine the day-one
+  flag for animals still in the shelter.
+
+## 8. Lessons learned
 
 - **I did't fully understand the business problem in the beginning**  
 My initial instinct was to predict whether an animal would be adopted. Only when writing the report did I realize this missed the shelter's real pain point: limited space and capacity, where the true strain comes from animals that stay stuck for a long time. I therefore redefined the target from is_adopted to is_long_stay, shifting the focus from "Will this animal be adopted?" to "Will it occupy space long-term, so staff can intervene early?
@@ -292,6 +305,31 @@ pip install -r requirements.txt   # or: pandas numpy scikit-learn xgboost shap m
 > **date-stamp suffix** `_20260523`. If you re-export fresh data from the portal, that date
 > stamp will differ and the notebook will fail to find the file — either rename the new
 > export to match, or edit those two path variables in `01_cleaning.ipynb`.
+
+### Reproducibility
+
+The scope here is deliberately honest: results reproduce in **ranking and metrics** on the
+pinned environment, not guaranteed bit-for-bit across machines.
+
+- **Seed = 42.** `03_modeling.ipynb` fixes `RANDOM_STATE = 42` (and `np.random.seed(42)`),
+  and passes it to XGBoost — both the inner-CV models and the final refit — to the SHAP
+  background sampling, and to the mutual-information screening in `02_eda.ipynb`
+  (`mutual_info_classif(..., random_state=42)`). Those steps are reproducible run-to-run.
+- **LogisticRegression is *not* explicitly seeded.** It is built as
+  `LogisticRegression(max_iter=2000, C=1.0, class_weight='balanced')` with no `random_state`.
+  Its default `lbfgs` solver is deterministic, so results are stable — but the seed is not
+  pinned there, so this is not an "all models seeded" guarantee.
+- **`01_cleaning.ipynb` has no random operations** (merge / filter / rename only), so it
+  needs no seed.
+- **Numerical reproducibility depends on the pinned environment** — Python 3.13,
+  `pandas==3.0.0`, `numpy==2.4.1` (`03_modeling` was run locally on this stack). Cleaning was
+  done on **pandas 3.0**, and pandas changed `merge_asof` and timezone-parsing behaviour
+  across major versions, so running the cleaning step on **pandas 2.x may yield a different
+  post-merge row count**, which then propagates downstream.
+- **Multi-threaded XGBoost.** XGBoost runs with `n_jobs=4` and `tree_method='hist'`.
+  Multi-threaded floating-point summation is not guaranteed bit-for-bit identical across
+  hardware, so metrics and rankings reproduce but the exact digits may differ machine to
+  machine.
 
 ---
 
