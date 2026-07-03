@@ -24,7 +24,7 @@ reason (an *outcome* record). This project uses the full history from **October 
 2025** — roughly 174,000 intake events and 174,000 outcome events.
 
 After matching each departure back to the arrival record and narrowing to dogs and
-cats, the analysis runs on **162,465 animal stays**.
+cats, the analysis runs on **162,932 animal stays**.
 
 ---
 
@@ -45,15 +45,15 @@ future year (2024) the models never saw during development:
 
 | Species | Model | AUC | Precision | Recall | F1 |
 |---------|-------|-----|-----------|--------|-----|
-| Dog | XGBoost | 0.707 | 0.404 | 0.711 | 0.515 |
-| Dog | Logistic Reg. | 0.650 | 0.375 | 0.707 | 0.490 |
-| Cat | XGBoost | 0.750 | 0.418 | 0.753 | 0.538 |
-| Cat | Logistic Reg. | 0.712 | 0.461 | 0.669 | 0.546 |
+| Dog | XGBoost | 0.711 | 0.424 | 0.716 | 0.532 |
+| Dog | Logistic Reg. | 0.654 | 0.395 | 0.712 | 0.508 |
+| Cat | XGBoost | 0.747 | 0.419 | 0.748 | 0.537 |
+| Cat | Logistic Reg. | 0.711 | 0.462 | 0.665 | 0.545 |
 
 *Scored on the 2024 test year at the chosen threshold (To maximise F1 on
 the earlier 2022–2023 data).*
 
-| <img width="400" alt="Untitled design" src="https://github.com/user-attachments/assets/1678d1b4-5bb0-4e99-8961-c1ae543d0242" /> | <img width="750" alt="image" src="https://github.com/user-attachments/assets/49c9121b-08a2-44f7-bcb0-5d6c7dc3fc02" /> |
+| <img width="400" alt="Untitled design" src="https://github.com/user-attachments/assets/2dd803e2-433c-4653-9a99-79350efccdbb" /> | <img width="750" alt="image" src="https://github.com/user-attachments/assets/55b5bf1f-0727-4e78-9b37-1e6921526f20" /> |
 | :---: | :---: |
 | Figure 1. Test AUC by fold (2020–2024), per species and model. | Figure 2. Confusion matrices on the 2024 test fold, per species and model (at each model's operating threshold). |
 
@@ -61,7 +61,8 @@ the earlier 2022–2023 data).*
 
 ## 4. How it works — data, modelling, and the judgment calls
 
-<img width="1108" height="576" alt="Screenshot 2026-06-28 at 19 55 28" src="https://github.com/user-attachments/assets/44cce23f-80a4-4a6f-b77f-b1c3f05a611a" />
+<img width="1108" height="576" alt="Screenshot 2026-07-02 at 21 58 44" src="https://github.com/user-attachments/assets/92af5f6e-83bf-4021-8195-3bb90413878d" />
+
 Figure 3. The five-stage data-flow pipeline, from raw Austin Open Data exports to per-species modeling
 
 ### The project runs as a five-stage data-flow pipeline
@@ -132,7 +133,8 @@ Long-stay cases are the minority class (dog ≈ 0.17-0.33, cat ≈ 0.17-0.34). R
 Drivers are read from **SHAP values on the reference-fold model** (train ≤ 2023), not impurity
 importance (biased toward high-cardinality features like breed):
 
-<img align="left" width="550" src="https://github.com/user-attachments/assets/7726dbe5-1f14-48e7-89c0-d18aed45dce3">
+<img align="left" width="550" src="https://github.com/user-attachments/assets/bfd2dadc-2373-4142-9594-6994ba69f4f2" />
+
 
 **Figure 4. SHAP summary for the dog XGBoost model**  
 
@@ -143,7 +145,7 @@ Age ranks first, and its red/blue spread on both sides is the non-monotonic effe
 <br clear="left"/>
 <br><br>
 
-<img align="left" width="550" src="https://github.com/user-attachments/assets/732c1b6e-ebf2-490a-a052-1ccf9222a188" /> 
+<img align="left" width="550" src="https://github.com/user-attachments/assets/87844d10-a50a-4459-9b43-c678e1f233cb" />
 
 **Figure 5. SHAP summary for the cat XGBoost model**  
 
@@ -155,7 +157,8 @@ Age ranks first with a non-monotonic red/blue spread. Sex_Unknown: present (red)
 <br clear="left"/>
 <br><br>
 
-<img align="left" width="550" src="https://github.com/user-attachments/assets/1fe58e34-d395-4f07-b8aa-7a9aed40e1d8" />
+<img align="left" width="550" src="https://github.com/user-attachments/assets/10d8f1d2-84e4-47a4-833c-ea15ff4ee54c" />
+
 
 **Figure 6. Long-stay rate by age at intake, dogs vs cats**  
 
@@ -167,7 +170,62 @@ In EDA we can see the age effect is *non-monotonic* for both dog and cat: the yo
 
 ## 6. Limitation
 
+### Model & methodology
 
+- **Precision at the operating threshold is ≈0.40 (XGBoost).** The thresholds maximize
+  F1 on pooled 2022–2023 out-of-sample predictions, but the resulting operating point is
+  recall-heavy. On the 2024 test fold, XGBoost reaches recall 0.711 (dog) / 0.753 (cat)
+  at precision 0.404 / 0.418. In practice, roughly 2 of every 5 flagged animals actually
+  become long-stays, and for a shelter with limited staff the false positives are a real
+  operational cost. Since shelter capacity was unknown when the threshold was set, recall
+  and precision can be re-balanced along the PR curve to match actual operational needs.
+
+- **Predicted probabilities systematically overstate long-stay risk.** On the pooled
+  reliability curves, every point for both species lies below the diagonal: e.g., dogs
+  scored around 0.8 by XGBoost actually long-stay at only ~52%, and cats scored around
+  0.8 at ~67%. This is a known consequence of per-fold class weighting, which inflates
+  minority-class probabilities. The curves remain monotonic, so ranking (AUC) and
+  thresholded flags are unaffected, but the raw scores must not be read as literal
+  probabilities. If trustworthy probabilities are ever needed, an isotonic or Platt
+  calibrator must be fit on a held-out fold.
+
+- **The 2023 dog regime shift is unexplained, and the base rate keeps drifting.**
+  The dog long-stay rate jumped structurally in 2023 and dog XGBoost AUC dropped from 0.766
+  to 0.694; none of the recorded intake fields explain the shift, so the dog model is
+  inherently less trustworthy than the cat model. More broadly, the long-stay base rate
+  drifts for both species (24.6% in 2022, 30.7% in 2023, 28.9% in 2024). The pipeline has
+  no drift detection, so a future shift of the same kind would silently degrade
+  performance, and the fixed operating threshold would need periodic re-tuning as base
+  rates move.
+
+- **Only intake-day information is used (7 features per species).** No behavioral
+  assessments, photos, or any post-intake signal. This is by design (the model must
+  score an animal on day one), but it likely sets the AUC ceiling at ~0.70–0.75.
+
+- **Interpretability is correlational, from a single fit.** SHAP values (and LR
+  coefficients) describe association, not causation, e.g., owner surrender predicting
+  long stays does not mean intervening on surrenders would shorten them.
+
+### Data & scope
+
+- **Record linkage is assumption-based.** Each outcome is matched to the nearest prior
+  intake via `merge_asof`; unmatched outcomes (924 rows, 0.53%), outcomes re-claiming
+  an already-used intake (274 rows), duplicates, and impossible dates were dropped.
+  Total losses are under 1%, but mismatches cannot be fully ruled out.
+
+- **Breed information is heavily simplified.** Only the first listed breed is kept as
+  `primary_breed` (a "Border Terrier/Border Collie" becomes Border Terrier plus an
+  `is_mix` flag), and dogs span 211 recorded breeds of which 100 have fewer than 50 rows.
+
+- **Intake status does not guarantee adoption eligibility.** Per the Austin Animal
+  Center metadata, intake records represent the status of animals as they arrive at
+  the shelter; the data does not indicate whether an animal was ever eligible for
+  adoption. Some long stays may therefore reflect legal holds or ineligibility rather
+  than low adoption appeal, and the model cannot distinguish the two.
+
+- **Scope: one shelter, two species.** All data come from Austin Animal Center and only
+  dogs and cats are modeled. Nothing here has been tested for transfer to other shelters,
+  regions, or species.
 ---
 
 
