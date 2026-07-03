@@ -1,17 +1,27 @@
-pandas>=3.0.0
-numpy>=2.0.0
-matplotlib>=3.8.0
-seaborn>=0.13.0
-scikit-learn>=1.4.0
-xgboost>=2.0.0
-imbalanced-learn>=0.12.0
-sweetviz>=2.3.0
-requests>=2.31.0
-jupyter>=1.0.0
-ipykernel>=6.29.0
+# Python 3.13 — versions captured via pip freeze on the environment used for 03_modeling.ipynb
+
+# Core data science / modeling stack (03_modeling.ipynb) — exact versions read from the live aac-model kernel env
+pandas==3.0.0
+numpy==2.4.1
+scikit-learn==1.9.0
+xgboost==3.2.0
+shap==0.52.0
+matplotlib==3.10.9
+seaborn==0.13.2
+
+# EDA (notebooks/02_eda.ipynb)
+sweetviz==2.3.3
+
+# Jupyter runtime
+ipykernel==7.2.0
+requests==2.34.2
 
 # Azure SQL upload (notebooks/01_cleaning.ipynb) + .env loading
-pyodbc>=5.1.0
-azure-identity>=1.16.0
-sqlalchemy>=2.0.0
-python-dotenv>=1.0.0
+pyodbc==5.3.0
+azure-identity==1.25.3
+sqlalchemy==2.0.51
+python-dotenv==1.2.2
+
+# Not installed in the 03_modeling env — left at original specifier (install separately if a notebook needs them)
+imbalanced-learn>=0.12.0
+jupyter>=1.0.0

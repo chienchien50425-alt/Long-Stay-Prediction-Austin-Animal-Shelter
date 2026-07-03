@@ -26,6 +26,11 @@ reason (an *outcome* record). This project uses the full history from **October 
 After matching each departure back to the arrival record and narrowing to dogs and
 cats, the analysis runs on **162,932 animal stays**.
 
+> **Included in this repo — no download needed.** Both raw exports are committed under
+> [`data/raw dataset/`](data/raw%20dataset/) (Intakes ≈ 29 MB, Outcomes ≈ 24 MB), so the
+> full pipeline runs without touching the portal. **Data license: Public Domain** (City of
+> Austin Open Data Portal).
+
 ---
 
 ## 3. What the project delivers
@@ -258,7 +263,8 @@ When I switched the target from is_adopted to is_long_stay, I kept the original 
 ```
 .
 ├── data/
-│   ├── raw dataset/        # two raw Austin Open Data exports (intakes, outcomes)
+│   ├── raw dataset/        # two raw Austin exports, committed (note: folder name has a space;
+│   │                       #   filenames carry a _20260523 date stamp)
 │   └── processed/
 │       └── df_full_merged.csv   # cleaned, merged, dog/cat-only (162,932 rows)
 ├── notebooks/
@@ -270,12 +276,38 @@ When I switched the target from is_adopted to is_long_stay, I kept the original 
 
 **Reproducing:**
 
+No data download is required — both raw CSVs are already committed under
+[`data/raw dataset/`](data/raw%20dataset/) (**license: Public Domain**, City of Austin Open
+Data Portal). Install the dependencies and run the notebooks in order:
+
 ```bash
-pip install pandas numpy scikit-learn xgboost shap matplotlib seaborn
+pip install -r requirements.txt   # or: pandas numpy scikit-learn xgboost shap matplotlib seaborn
 # run notebooks in order: 01 → 02 → 03
 # 01 writes data/processed/df_full_merged.csv, which 02 and 03 both read.
 ```
 
+> ⚠️ **Filename convention — don't rename these.** `01_cleaning.ipynb` reads the two raw
+> files by their **exact paths** via `FULL_INTAKES_PATH` / `FULL_OUTCOMES_PATH`. Two things
+> to watch: the folder name **contains a space** (`raw dataset`), and each filename carries a
+> **date-stamp suffix** `_20260523`. If you re-export fresh data from the portal, that date
+> stamp will differ and the notebook will fail to find the file — either rename the new
+> export to match, or edit those two path variables in `01_cleaning.ipynb`.
+
 ---
 
-*Data: City of Austin Open Data Portal. Independent portfolio project.*
+## License & citation
+
+- **Code:** MIT License — see [LICENSE](LICENSE). Original work by Wei Ling Chien.
+- **Data:** City of Austin Open Data Portal — Animal Center *Intakes* & *Outcomes*,
+  **Public Domain**. Retrieved 2026-05-23. The data license is separate from the code
+  license: the code is MIT, the underlying data is public domain and not covered by MIT.
+
+**How to cite:**
+
+```
+Wei Ling Chien (2026). Predicting Long-Stay Shelter Animals — Austin Animal Center.
+GitHub: <REPO_URL>
+```
+
+**Acknowledgements:** City of Austin and Austin Animal Center for publishing the open
+intake and outcome data that makes this project possible.
