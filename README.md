@@ -30,7 +30,7 @@ every animal that comes **in** (an *intake* record) and every animal that leaves
 reason (an *outcome* record). This project uses the full history from **October 2013 to May
 2025** — roughly 174,000 intake events and 174,000 outcome events.
 
-After matching each departure back to the arrival record and narrowing to dogs and
+After matching each arrival and departure record and narrowing to dogs and
 cats, the analysis runs on **162,932 animal stays**.
 
 > **Included in this repo, no download needed.** Both raw exports are committed under
@@ -62,8 +62,9 @@ future year (2024) the models never saw during development:
 | Cat | XGBoost | 0.747 | 0.419 | 0.748 | 0.537 |
 | Cat | Logistic Reg. | 0.711 | 0.462 | 0.665 | 0.545 |
 
-*Scored on the 2024 test year at the chosen threshold (to maximise F1 on the earlier 2022–2023 data).*
-*Baseline was established using LR approach, while XGBoost was employed as the principal predictive model.*
+*Scored on the 2024 test year at the chosen threshold (to maximise F1 on the earlier 2022–2023 data).*  
+*Baseline was established using LR approach, while XGBoost was employed as the principal predictive model.*  
+*Cat LR edges XGBoost on F1 at this single operating point, but XGBoost ranks better across thresholds (AUC 0.747 vs 0.711), which is what the triage use-case needs.*
 
 | <img width="400" alt="Untitled design" src="https://github.com/user-attachments/assets/2dd803e2-433c-4653-9a99-79350efccdbb" /> | <img width="750" alt="image" src="https://github.com/user-attachments/assets/55b5bf1f-0727-4e78-9b37-1e6921526f20" /> |
 | :---: | :---: |
@@ -81,7 +82,7 @@ Figure 3. The five-stage data-flow pipeline, from raw Austin Open Data exports t
 
 Stage 1 · Raw Data Sources — Two CSV exports from the City of Austin Open Data Portal (2013-10-01 → 2025-05-05): an Intakes file (173,812 rows, one row per intake event) and an Outcomes file (173,775 rows, one row per outcome event).  
 
-Stage 2 · Clean & Merge (01_cleaning) — Python/pandas notebook that aligns both exports to a shared schema and backward-merges intakes with outcomes into one row per outcome event.  
+Stage 2 · Clean & Merge (01_cleaning) — Python/pandas notebook that aligns both exports to a shared schema and backward-merges each outcome to its most recent prior intake, producing one row per completed animal stay. It then adds 467 still-in-shelter animals that have no outcome yet but whose elapsed stay already exceeds 30 days, labeled positive.
 
 Stage 3 · Processed Dataset — Writes df_full_merged.csv to disk (162,932 rows × 26 columns, filtered to dogs & cats). This single file is the source every downstream notebook reads from.  
 
@@ -257,8 +258,7 @@ Building a data bridge between the legacy and modern systems. By developing a cr
   The long-stay base rate moves year to year
   (24.6% → 30.7% → 29.7%), and the pipeline currently has no way to notice. Adding a
   base-rate / PSI drift check on incoming data, plus a scheduled re-tune of the
-  operating threshold, would stop a future regime shift from silently degrading the
-  flag.
+  operating threshold.
 
 - **Post-intake signals** — *addresses "only intake-day information is used".*  
   The model deliberately scores an animal on day one, which likely caps AUC at
