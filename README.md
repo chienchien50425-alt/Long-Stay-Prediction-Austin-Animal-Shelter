@@ -254,7 +254,7 @@ Building a data bridge between the legacy and modern systems. By developing a cr
   were incorporated as they arrive, a second-stage model could refine the day-one
   flag for animals still in the shelter.
 
-- **Length of stay prediction**
+- **Length of stay prediction**  
 The current target collapses time-to-exit into a single yes/no at 30 days. A separate regression, trained on animals with an observed length of stay, would predict the actual number of days, creating a finer signal for triage than the binary flag.
 
 - **Calibrated probabilities** — *addresses "predicted probabilities systematically overstate long-stay risk".*  
