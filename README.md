@@ -104,7 +104,7 @@ Stage 5 · Modeling (03_modeling) — Predicts is_long_stay separately per speci
   | 4 | 2013–2022 | 2023 | **validation** (threshold decisions + feature selection) |
   | 5 | 2013–2023 | 2024 | **reference** (test + interpretability) |
 
-- The 2020–2022 test folds drive no decisions; they trace test AUC over time. They uncover the dog model's 2023 drop as a structural result and show the cat model stays flat across the same years.
+- The 2020–2021 test folds drive no decisions; they trace test AUC over time. They uncover the dog model's 2023 drop as a structural result and show the cat model stays flat across the same years.
 - In 2023, the dog long_stay rate jumps structurally (Dog +0.096 from 2022) for reasons the recorded fields don't explain. Pooling 2022 (0.219) and 2023 (0.315) places the cut-point between the pre- and post-jump regimes, making it more robust for 2024 deployment. Cats show no jump but use the same rule for parity.
 - Feature selection of breed and spay/neuter is decided by ablation on single 2023 fold. An ablation compares AUC with vs. without a feature, so it reads a relative gap rather than the absolute AUC level and the relative gap is less sensitive to the base-rate drift that pushed the absolute 2023 AUC down.
   - Keep *Cat breed*:  Mutual information against the target was **0.001**, which argues for dropping it, but mutual information misses interaction effects. Validation-fold ablation moved XGBoost AUC by **+0.0013** with breed included, effectively neutral.
@@ -176,7 +176,7 @@ Age ranks first with a non-monotonic red/blue spread. Sex_Unknown: present (red)
 
 **Figure 6. Long-stay rate by age at intake, dogs vs cats**  
 
-In EDA we can see the age effect is *non-monotonic* for both dog and cat: the youngest puppies (under ~2 months) carry the highest long-stay risk (~27%), risk collapses in adolescence (~5% at 2–6 months), climbs again through prime adulthood, then falls for seniors. Very young kittens are highest-risk (~40%), and risk *rises* again into the senior years rather than falling.
+In EDA we can see the age effect is *non-monotonic* for both dog and cat: the youngest puppies (under ~2 months) carry the highest long-stay risk (~27%), risk collapses in adolescence (~5% at 2–6 months), climbs again through prime adulthood, then falls for seniors. Very young kittens are highest-risk (~40%), and risk *rises* again into the senior years, then decreases for 15+ cats.
 
 <br clear="left"/>
 
