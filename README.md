@@ -248,13 +248,13 @@ All data come from Austin Animal Center and only
 - **Integrating post-migration data**  
 Building a data bridge between the legacy and modern systems. By developing a crosswalk logic to reconcile the differing ID schemas, integrate post-migration records, update our ETL pipeline, and transition this historical analysis into a real-time predictive tool.
 
-- **Post-intake signals to addresses "only intake-day information is used".**  
+- **Post-intake signals** — *to addresses "only intake-day information is used".*  
   The model deliberately scores an animal on day one, which likely caps AUC at
   ~0.70–0.75. If later signals (behavioral assessments, medical updates, photos)
   were incorporated as they arrive, a second-stage model could refine the day-one
   flag for animals still in the shelter.
 
-- **length of stay prediction** — *to predict actual number of in shelter days.* 
+- **Length of stay prediction**
 The current target collapses time-to-exit into a single yes/no at 30 days. A separate regression, trained on animals with an observed length of stay, would predict the actual number of days, creating a finer signal for triage than the binary flag.
 
 - **Calibrated probabilities** — *addresses "predicted probabilities systematically overstate long-stay risk".*  
