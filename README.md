@@ -106,7 +106,7 @@ Stage 5 · Modeling (03_modeling) — Predicts is_long_stay separately per speci
 
 - The 2020–2022 test folds drive no decisions; they trace test AUC over time. They uncover the dog model's 2023 drop as a structural result and show the cat model stays flat across the same years.
 - In 2023, the dog long_stay rate jumps structurally (Dog +0.096 from 2022) for reasons the recorded fields don't explain. Pooling 2022 (0.219) and 2023 (0.315) places the cut-point between the pre- and post-jump regimes, making it more robust for 2024 deployment. Cats show no jump but use the same rule for parity.
-- Feature selection of breed and spay/neuter is decided by ablation on single 2023 fold. This holds on one year because an ablation compares AUC with vs. without a feature, and AUC is a ranking measure largely unaffected by a base-rate shift and the 2023 jump is broad-based (a uniform lift, not a structural reshuffle).
+- Feature selection of breed and spay/neuter is decided by ablation on single 2023 fold. An ablation compares AUC with vs. without a feature, so it reads a relative gap rather than the absolute AUC level and the relative gap is less sensitive to the base-rate drift that pushed the absolute 2023 AUC down.
   - Keep *Cat breed*:  Mutual information against the target was **0.001**, which argues for dropping it, but mutual information misses interaction effects. Validation-fold ablation moved XGBoost AUC by **+0.0013** with breed included, effectively neutral.
   - Keep *Spay/neuter vs. age*:  These two are correlated (r ≈ 0.41 dog, 0.59 cat), raising a
   redundancy worry. Dropping the spay/neuter slightly lowered validation AUC for both species (Δ ≈ −0.003) in LR, drop will slightly hurt performance.
@@ -248,6 +248,15 @@ All data come from Austin Animal Center and only
 - **Integrating post-migration data**  
 Building a data bridge between the legacy and modern systems. By developing a crosswalk logic to reconcile the differing ID schemas, integrate post-migration records, update our ETL pipeline, and transition this historical analysis into a real-time predictive tool.
 
+- **Post-intake signals to addresses "only intake-day information is used".**  
+  The model deliberately scores an animal on day one, which likely caps AUC at
+  ~0.70–0.75. If later signals (behavioral assessments, medical updates, photos)
+  were incorporated as they arrive, a second-stage model could refine the day-one
+  flag for animals still in the shelter.
+
+- **length of stay prediction** — *to predict actual number of in shelter days.* 
+The current target collapses time-to-exit into a single yes/no at 30 days. A separate regression, trained on animals with an observed length of stay, would predict the actual number of days, creating a finer signal for triage than the binary flag.
+
 - **Calibrated probabilities** — *addresses "predicted probabilities systematically overstate long-stay risk".*  
   The per-fold class weighting that fixes imbalance
   also inflates minority-class scores, so raw outputs must not be read as literal
@@ -260,11 +269,6 @@ Building a data bridge between the legacy and modern systems. By developing a cr
   base-rate / PSI drift check on incoming data, plus a scheduled re-tune of the
   operating threshold.
 
-- **Post-intake signals** — *addresses "only intake-day information is used".*  
-  The model deliberately scores an animal on day one, which likely caps AUC at
-  ~0.70–0.75. If later signals (behavioral assessments, medical updates, photos)
-  were incorporated as they arrive, a second-stage model could refine the day-one
-  flag for animals still in the shelter.
 
 ## 8. Lessons learned
 
