@@ -193,42 +193,22 @@ In EDA we can see the age effect is *non-monotonic* for both dog and cat: the yo
   at precision 0.424 / 0.419. In practice, roughly 2 of every 5 flagged animals actually
   become long-stays, and for a shelter with limited staff the false positives are a real
   operational cost. Since shelter capacity was unknown when the threshold was set, *recall
-  and precision can be re-balanced along the PR curve to match actual operational needs.*
-
-- **Predicted probabilities systematically overstate long-stay risk.**
-  On the pooled
-  reliability curves, every point for both species lies below the diagonal: e.g., dogs
-  scored around 0.8 by XGBoost actually long-stay at only ~52%, and cats scored around
-  0.8 at ~67%. This is a known consequence of per-fold class weighting, which inflates
-  minority-class probabilities. The curves remain monotonic, so ranking (AUC) and
-  thresholded flags are unaffected, but the raw scores must not be read as literal
-  probabilities.
+  and precision can be re-balanced to match actual operational needs.*
 
 - **The 2023 dog regime shift is unexplained, and the base rate keeps drifting.**  
   The dog long-stay rate jumped structurally in 2023 and dog XGBoost AUC dropped from 0.766
   to 0.694; none of the recorded intake fields explain the shift, so the dog model is
-  inherently less trustworthy than the cat model. More broadly, the long-stay base rate
-  drifts for both species (24.6% in 2022, 30.7% in 2023, 29.7% in 2024). The pipeline has
-  no drift detection, so a future shift of the same kind would silently degrade performance.
+  less stable than the cat model.
 
 - **Only intake-day information is used (7 features per species).** No behavioral
   assessments, photos, or any post-intake signal. This is by design (the model must
   score an animal on day one), but it likely sets the AUC ceiling at ~0.70–0.75.
 
-- **Interpretability is correlational, from a single fit.** SHAP values (and LR
-  coefficients) describe association, not causation, e.g., owner surrender predicting
-  long stays does not mean intervening on surrenders would shorten them.
 
 ### Data & scope
 
 - **System migration limits scope to pre-May 2025 legacy data**
 This project utilizes historical CSV extracts from the shelter's legacy system, with records concluding on May 5, 2025. The shelter has since migrated to a new platform that employs a different identification schema for animals, intakes, and outcomes. Because the internal mapping logic required to reconcile the legacy IDs with the new structure is unavailable, recent records cannot be ingested. Consequently, this analysis is restricted to the historical dataset.
-
-- **Record linkage is assumption-based.**  
-Each outcome is matched to the nearest prior
-  intake via `merge_asof`; unmatched outcomes (924 rows, 0.53%), outcomes re-claiming
-  an already-used intake (274 rows), duplicates, and impossible dates were dropped.
-  Total losses are under 1%, but mismatches cannot be fully ruled out.
 
 - **Intake status does not guarantee adoption eligibility.**  
 Per the Austin Animal
@@ -237,10 +217,6 @@ Per the Austin Animal
   adoption. Some long stays may therefore reflect legal holds or ineligibility rather
   than low adoption appeal, and the model cannot distinguish the two.
 
-- **Scope: one shelter, two species.**  
-All data come from Austin Animal Center and only
-  dogs and cats are modeled. Nothing here has been tested for transfer to other shelters,
-  regions, or species.
 ---
 
 ## 7. Future work
@@ -257,13 +233,7 @@ Building a data bridge between the legacy and modern systems. By developing a cr
 - **Length of stay prediction**  
 The current target collapses time-to-exit into a single yes/no at 30 days. A separate regression, trained on animals with an observed length of stay, would predict the actual number of days, creating a finer signal for triage than the binary flag.
 
-- **Calibrated probabilities** — *addresses "predicted probabilities systematically overstate long-stay risk".*  
-  The per-fold class weighting that fixes imbalance
-  also inflates minority-class scores, so raw outputs must not be read as literal
-  probabilities. If actual probability scores are ever needed, fitting an isotonic or Platt calibrator on a held-out fold would let
-  the scores be interpreted as true probabilities.
-
-- **Drift monitoring and threshold re-tuning** — *addresses "no drift detection, and the base rate keeps drifting".*  
+- **Drift monitoring and threshold re-tuning** — *addresses "the base rate keeps drifting".*  
   The long-stay base rate moves year to year
   (24.6% → 30.7% → 29.7%), and the pipeline currently has no way to notice. Adding a
   base-rate / PSI drift check on incoming data, plus a scheduled re-tune of the
