@@ -8,7 +8,7 @@
 </p>
 
 > Flagging the dogs and cats most likely to get stuck in the shelter, **on the day they
-> arrive**, so staff can step in early instead of reacting weeks too late - the model catches roughly 7 to 8 out of every 10 animals that would go on to get stuck.
+> arrive**, so staff can step in early instead of reacting weeks too late - at its 20% flag rate the model catches about 4 in every 10 animals that go on to get stuck, and roughly half of what it flags does.
 
 ---
 
@@ -45,30 +45,63 @@ cats, the analysis runs on **162,932 animal stays**.
 The result is an **early-warning flag**: on intake day, each dog or cat is scored for how
 likely it is to become a long-stay case, using only what's actually known at that moment.
 
-In plain terms, **the flag catches roughly 7 to 8 out of every 10 animals that would go on to
-get stuck** — while they still have their best shot at a fast placement. That's the number
-that matters operationally: the earlier a future long-stay animal is identified, the more
-levers (foster, marketing, behavioural help) the shelter still has to pull.
+**The operating point is set by capacity, not by a metric target.** A shelter can only act on so
+many animals, so the flag marks the **top 20% of each day's intakes by risk score** (`FLAG_RATE`)
+and the recall/precision that buys is read off, rather than fixed in advance. At 20%, roughly
+**half of everything flagged does become a long stay** — dog precision 0.54, cat 0.61 — while
+catching 37% (dog) / 41% (cat) of all future long-stay animals early enough for foster, marketing
+or behavioural help to still matter.
 
-The operating threshold is chosen to **maximise F1**, the point that best balances catching as many future long-stay animals as possible (recall) against the operational load of chasing false alarms (precision). At that balance point the flag happens to lean toward recall (~0.71–0.75) over precision (~0.40), which suits a triage tool: an unnecessary early foster nudge costs lower than a missed long-stay animal costs real kennel-weeks. The flag is built to rank and prioritise.
+`FLAG_RATE` is a single dial. Widen it and you catch more but chase more false alarms; narrow it
+and the flag gets sharper but misses more. The full menu is printed in the notebook:
+
+| flag rate | dog recall / precision | cat recall / precision |
+|---|---|---|
+| 5% | 0.11 / 0.64 | 0.12 / 0.72 |
+| 10% | 0.20 / 0.59 | 0.24 / 0.71 |
+| **20%** | **0.37 / 0.54** | **0.41 / 0.61** |
+| 30% | 0.52 / 0.51 | 0.57 / 0.56 |
+| 50% | 0.77 / 0.46 | 0.75 / 0.45 |
+
+Two things this table settles. **`precision = 0.8` is out of reach at any usable flag rate** — even
+the top 1% of the ranking reaches only ~0.77 (dog) / ~0.78 (cat), a ceiling set by model strength
+rather than by threshold choice. And the rule is deliberately **rank-based, not a fixed probability
+cut-off**: predicted probabilities drift upward year over year, so a threshold frozen as a
+probability *value* stops transferring (the one chosen on 2022–2023 flags 41% of 2024 dogs instead
+of the intended 20%). A percentile is immune — inflation moves every score together and leaves the
+ordering untouched.
 
 For the technically inclined, here are the underlying numbers, back-tested on a held-out
 future year (2024) the models never saw during development:
 
 | Species | Model | AUC | Precision | Recall | F1 |
 |---------|-------|-----|-----------|--------|-----|
-| Dog | XGBoost | 0.711 | 0.424 | 0.716 | 0.532 |
-| Dog | Logistic Reg. | 0.654 | 0.395 | 0.712 | 0.508 |
-| Cat | XGBoost | 0.747 | 0.419 | 0.748 | 0.537 |
-| Cat | Logistic Reg. | 0.711 | 0.462 | 0.665 | 0.545 |
+| Dog | XGBoost | 0.747 | 0.540 | 0.367 | 0.437 |
+| Dog | Logistic Reg. | 0.681 | 0.428 | 0.290 | 0.346 |
+| Cat | XGBoost | 0.758 | 0.613 | 0.412 | 0.493 |
+| Cat | Logistic Reg. | 0.712 | 0.532 | 0.376 | 0.441 |
 
-*Scored on the 2024 test year at the chosen threshold (to maximise F1 on the earlier 2022–2023 data).*  
-*Baseline was established using LR approach, while XGBoost was employed as the principal predictive model.*  
-*Cat LR edges XGBoost on F1 at this single operating point, but XGBoost ranks better across thresholds (AUC 0.747 vs 0.711), which is what the triage use-case needs.*
+*Scored on the 2024 test year, flagging the top 20% of that year's intakes by score.*  
+*LR is the baseline; XGBoost is the principal model and now wins on every metric for both species.*  
+*AUC is threshold-free, so it is the number to compare models on; precision and recall move with `FLAG_RATE`.*
+
+Across the full five-fold back-test — each year predicted by a model trained only on the years before it:
+
+| Species / model | 2020 | 2021 | 2022 | 2023 | 2024 | mean ± std |
+|---|---|---|---|---|---|---|
+| Dog · XGBoost | 0.791 | 0.796 | 0.786 | 0.727 | 0.747 | 0.769 ± 0.031 |
+| Dog · Logistic Reg. | 0.774 | 0.779 | 0.756 | 0.672 | 0.681 | 0.733 ± 0.052 |
+| Cat · XGBoost | 0.744 | 0.740 | 0.741 | 0.749 | 0.758 | 0.746 ± 0.007 |
+| Cat · Logistic Reg. | 0.695 | 0.690 | 0.698 | 0.711 | 0.712 | 0.701 ± 0.010 |
+
+Cats are stable across every fold; dogs sat on a plateau near 0.79 and then broke in 2023 (see §4). Only
+2024 is held out — 2022 and 2023 set the features and the operating point, and 2020/2021 are trace-only.
 
 | <img width="400" alt="Untitled design" src="https://github.com/user-attachments/assets/2dd803e2-433c-4653-9a99-79350efccdbb" /> | <img width="750" alt="image" src="https://github.com/user-attachments/assets/55b5bf1f-0727-4e78-9b37-1e6921526f20" /> |
 | :---: | :---: |
-| Figure 1. Test AUC by fold (2020–2024), per species and model. | Figure 2. Confusion matrices on the 2024 test fold, per species and model (at each model's operating threshold). |
+| Figure 1. Test AUC by fold, per species and model. | Figure 2. Confusion matrices on the 2024 test fold, per species and model. |
+
+> **Figures 1–6 were rendered from an earlier run** (seven features, an F1-chosen probability threshold). The back-test is five folds again, but the feature set is now ten/nine and the operating point is the `FLAG_RATE` rule, so the tables in this README are current while the images lag them. Re-run `03_modeling.ipynb` to regenerate.
 
 ---
 
@@ -84,7 +117,7 @@ Stage 1 · Raw Data Sources — Two CSV exports from the City of Austin Open Dat
 
 Stage 2 · Clean & Merge (01_cleaning) — Python/pandas notebook that aligns both exports to a shared schema and backward-merges each outcome to its most recent prior intake, producing one row per completed animal stay. It then adds 467 still-in-shelter animals that have no outcome yet but whose elapsed stay already exceeds 30 days, labeled positive.
 
-Stage 3 · Processed Dataset — Writes df_full_merged.csv to disk (162,932 rows × 26 columns, filtered to dogs & cats). This single file is the source every downstream notebook reads from.  
+Stage 3 · Processed Dataset — Writes df_full_merged.csv to disk (162,932 rows × 27 columns, filtered to dogs & cats). This single file is the source every downstream notebook reads from.  
 
 Stage 4 · EDA (02_eda) — Exploratory analysis; its findings inform the feature choices used in modeling.  
 
@@ -95,32 +128,40 @@ Stage 5 · Modeling (03_modeling) — Predicts is_long_stay separately per speci
 - Modelling dogs and cats separately.
 - Each outcome is matched to its arrival with a **backward `merge_asof`** on animal ID. Every departure is joined to its *most recent prior* intake. Drop outcomes with no matching intake (~0.5%) and outcomes re-claiming the same intake.
 - Long stay is derived from outcome, so *every* outcome-derived column is a leakage -> remove from features. 
-- Random split would cause data leakage in time-series data, so the model is trained on data up to year $Y-1$ and tested on year $Y$, walking forward from 2020 to 2024.
+- Random split would cause data leakage in time-series data, so the model is trained on data up to year $Y-1$ and tested on year $Y$, walking forward.
   | fold | train years | test year | role |
   |---|---|---|---|
-  | 1 | 2013–2019 | 2020 | test |
-  | 2 | 2013–2020 | 2021 | test |
-  | 3 | 2013–2021 | 2022 | **validation** (threshold decisions) |
-  | 4 | 2013–2022 | 2023 | **validation** (threshold decisions + feature selection) |
-  | 5 | 2013–2023 | 2024 | **reference** (test + interpretability) |
+  | 1 | 2013–2019 | 2020 | trace only (drives no decision) |
+  | 2 | 2013–2020 | 2021 | trace only (drives no decision) |
+  | 3 | 2013–2021 | 2022 | **decision** (features + operating point) |
+  | 4 | 2013–2022 | 2023 | **decision** (features + operating point) |
+  | 5 | 2013–2023 | 2024 | **test** (held out — drives no decision) |
 
-- The 2020–2021 test folds drive no decisions; they trace test AUC over time. They uncover the dog model's 2023 drop as a structural result and show the cat model stays flat across the same years.
-- In 2023, the dog long_stay rate jumps structurally (Dog +0.096 from 2022) for reasons the recorded fields don't explain. Pooling 2022 (0.219) and 2023 (0.315) places the cut-point between the pre- and post-jump regimes, making it more robust for 2024 deployment. Cats show no jump but use the same rule for parity.
-- Feature selection of breed and spay/neuter is decided by ablation on single 2023 fold. An ablation compares AUC with vs. without a feature, so it reads a relative gap rather than the absolute AUC level and the relative gap is less sensitive to the base-rate drift that pushed the absolute 2023 AUC down.
-  - Keep *Cat breed*:  Mutual information against the target was **0.001**, which argues for dropping it, but mutual information misses interaction effects. Validation-fold ablation moved XGBoost AUC by **+0.0013** with breed included, effectively neutral.
-  - Keep *Spay/neuter vs. age*:  These two are correlated (r ≈ 0.41 dog, 0.59 cat), raising a
-  redundancy worry. Dropping the spay/neuter slightly lowered validation AUC for both species (Δ ≈ −0.003) in LR, drop will slightly hurt performance.
+  One constant, `DECISION_YEARS = [2022, 2023]`, drives both feature selection and the operating point, so the two decision folds carry identical responsibility and 2024 stays clean. 2020 and 2021 are deliberately kept out of the decision set: they are COVID-shaped years whose regime does not match the deployment era — specialising on 2021 is exactly what costs the 2022 fold when `intake_year` is added.
+
+  **2020 and 2021 are trace-only folds.** They extend the AUC history two years earlier and give `AUC_std` five points instead of three. They earn their place: dog XGB holds 0.791 / 0.796 / 0.786 across 2020–2022, so the 2023 fall reads against a three-fold plateau rather than against a single prior year. Five points is still a small sample — read `AUC_std` as indicative.
+
+- **The dog model broke in 2023** — XGB AUC held 0.791 / 0.796 / 0.786 across the 2020–2022 folds, then fell to 0.727 in 2023 and recovered only partly to 0.747 in 2024. Cats held 0.740–0.758 across all five folds, so there is no cat equivalent. Appendix 1 of `03_modeling.ipynb` diagnoses it by elimination. The short version: AUC is invariant to the base rate, so the long-stay rate jumping to 0.315 cannot be the cause. What actually happened is that **the adoption pathway slowed ~1.9x** (median 14 → 27 days) while transfer got *faster* and return-to-owner did not move — which rules out a general shelter jam. Small and big dogs slowed by the *same* factor; body size only decided how close a dog already sat to the fixed 30-day line, and that is what turned a proportional slowdown into a lopsided label shift. **Why adoption slowed is not answerable from this export** — it holds no adopter counts, foot traffic, listing dates or policy records.
+- Feature selection of breed and spay/neuter is decided by ablation on **both** decision folds, reported per fold plus the mean. An ablation compares AUC with vs. without a feature, so it reads a relative gap rather than the absolute AUC level, which makes it less sensitive to the base-rate drift that pushed the absolute 2023 AUC down.
+  - **Both folds, because two of the four ablations flip sign between 2022 and 2023.** Dropping `is_sn` *helps* the dog LR on 2022 (+0.0016) and *hurts* it on 2023 (−0.0036). A single-fold call would have landed on whichever year happened to be used — and 2023 is the anomalous year Appendix 1 dissects, making it the worst fold to decide alone on.
+  - Results are the **mean of per-fold AUCs, never one AUC over pooled predictions**: the folds sit on different score scales (mean predicted 0.454 vs 0.496), so pooling leaks the year signal into the ranking — a bias larger than most of the effects being measured.
+  - Keep *Cat breed*: MI was **0.001**, which argues for dropping, but MI misses interactions. The LR ablation (no tuning, so a clean read) is flat at ±0.0003 and unstable in sign. The XGB ablation passes through the tuning grid, so its delta mixes the feature's effect with where the grid landed — re-running one fold across 5 seeds spans −0.0022 to +0.0125.
+  - Keep *Spay/neuter vs. age*: correlated (r ≈ 0.41 dog, 0.59 cat), raising a redundancy worry, but VIF is 1.2–1.5, well under the usual 5–10 flag. Mean deltas are −0.0010 (dog) / −0.0015 (cat) — inside noise.
+  - In both cases the call is **"nothing justifies removal, and the column costs nothing"** — not a measured gain. Deciding on 2023 alone would have overstated the evidence.
 - Handling imbalance  
-Long-stay cases are the minority class (dog ≈ 0.17-0.33, cat ≈ 0.27-0.34). Re-weighting the positive class (`class_weight='balanced'` for LR and `scale_pos_weight` for XGBoost). 
+Long-stay cases are the minority class (by intake year over the full years 2014–2024, dog 0.11–0.32, cat 0.17–0.34). Re-weighting the positive class (`class_weight='balanced'` for LR and `scale_pos_weight` for XGBoost). 
 
 ### Features — how each input is selected, encoded, or cleaned before modeling
  
 | Feature handling | Dog | Cat | Where decided |
 |---|---|---|---|
-| Selected feature set | intake reason, breed, health condition, sex, age, `is_sn`, `is_mix` | same seven | MI / Pearson screening |
-| Dropped features | colour (primary/secondary/pattern), intake month | same | Near-floor MI (≤ 0.008) for both species |
-| Breed encoding | top-20 + Other | top-4 + Other | Cat breed MI ≈ 0.001, but MI misses interactions; ablation was neutral (+0.0013 AUC). Kept for feature set parity |
-| `is_sn` (spay/neuter) | kept | kept | Collinearity ablation (Δ AUC ≈ −0.003) |
+| Selected feature set | intake reason, breed, **`breed_size`**, health condition, sex, age, `is_sn`, `is_mix`, **intake month**, **intake year** (10) | same minus `breed_size` (9) | MI screening, then back-test ablation |
+| `breed_size` (small <25 lbs / big) | **added**, −0.002 / +0.007 / +0.009 AUC on the 2022 / 2023 / 2024 folds — a recent-fold gain, not a uniform one | **not used** — ~95% of cats are domestic short/medium/longhair (83% shorthair alone), so there is little size structure to find (measured: −0.005 / +0.001 / +0.001, noise that flips sign) | The 2023 diagnosis pointed at the 30-day line, and size sets distance to it. No weight column exists in the data, so the mapping is stated in code as external domain knowledge, not a derivation |
+| `intake_year` | **added**, +0.006 mean AUC (−0.003 / +0.013 / +0.009) | **added**, +0.006 mean (+0.005 / +0.006 / +0.008) | A test year never appears in training, so a tree saturates at its last split and applies the most-recent-era rules — implicit recency weighting. Known at intake, so not leakage. Encoded numerically for XGB but **one-hot for LR**, since a linear model would extrapolate the yearly trend without bound |
+| Intake month | **restored**, though flat to slightly negative for dogs (−0.007 / +0.002 / −0.005) | **restored**, +0.004 mean AUC (+0.009 / +0.004 / +0.001) | Originally cut on univariate MI (0.0002 dog / 0.0084 cat). MI is a *marginal* measure and cannot see conditional effects — it should rank what to explore, not decide final inclusion |
+| Dropped features | colour (primary/secondary/pattern) | same | Near-floor MI (≤ 0.0013) **plus** a 2023-fold ablation — not MI alone |
+| Breed encoding | top-**60** + Other | top-4 + Other | `Breed` is a free-text field with 385 distinct primary values. A top-20 cap pushed 26.7% of dogs into one 'Other' column spanning long-stay rates from 0.01 to 0.32. Top-60 covers 92.5%; top-100 adds 5pp more |
+| `is_sn` (spay/neuter) | kept | kept | Collinearity ablation over both decision folds (mean Δ AUC −0.0010 dog / −0.0015 cat — inside noise; kept for want of a reason to drop) |
 | Age (XGBoost) | raw `age_at_intake_days` | same | Tree model, scale-invariant |
 | Age (Logistic Reg.) | 8 buckets: <2mo … 15yr+ | same | EDA |
 | Health condition | keep Normal / Injured / Sick / Nursing / Neonatal, rest → Other | same | Keep the well-populated levels, merge <1000 categories into 'Other' |
@@ -131,13 +172,12 @@ Long-stay cases are the minority class (dog ≈ 0.17-0.33, cat ≈ 0.27-0.34). R
 | Setting | Dog | Cat | Where decided |
 |---|---|---|---|
 | Long-stay threshold (target) | > 30 days | > 30 days |  From shelter's announcement |
-| Operating threshold (XGBoost) | 0.417 | 0.455 | Max-F1 on pooled 2022–2023 |
-| Operating threshold (Logistic Reg.) | 0.446 | 0.517 | Same |
+| Operating point | flag top **20%** by score (`FLAG_RATE`) | same | Set by operational capacity, not by a metric target. Rank-based so the flagged share is exact regardless of probability drift |
 | Class imbalance | per-fold `scale_pos_weight` (XGB) / balanced weights (LR) | same | Recomputed per fold as base rate drifts |
 | XGBoost tuning grid | depth ∈ {3, 5}, lr ∈ {0.03, 0.1}, n_estimators ≤ 800, early stop 30 | same | Nested CV (inner = last train year) |
 | Logistic Reg. | L2, C = 1.0, max_iter = 2000 | same | Fixed regularised baseline |
-| Back-test folds | test years 2020–2024, expanding window | same | Rolling-origin |
-| Validation / test fold | feature decisions on 2023; headline on 2024 | same | 2024 never used for selection/tuning |
+| Back-test folds | test years 2020–2024, expanding window (2020/2021 trace-only) | same | Rolling-origin |
+| Validation / test fold | feature decisions + operating point on 2022 **and** 2023; headline on 2024 | same | 2024 never used for selection/tuning |
 
 ---
 
@@ -155,6 +195,8 @@ Each dot is one dog; x-position is that feature's push on the prediction (right 
 
 Age ranks first, and its red/blue spread on both sides is the non-monotonic effect. Pit Bull, owner-surrender and injured push toward long-stay; small popular breeds (Chihuahua, Dachshund, Miniature Schnauzer, Miniature Poodle) push the other way.
 
+**Current ranking (this figure predates it), by mean |SHAP|:** age (0.55) → **`breed_size_small` (0.42)** → **`intake_year` (0.29)** → owner-surrender (0.17) → `is_sn` (0.16) → Pit Bull (0.16). `breed_size` absorbed much of what individual small-breed dummies were carrying before, which is why it is now second and Pit Bull has slipped to sixth.
+
 <br clear="left"/>
 <br><br>
 
@@ -164,7 +206,7 @@ Age ranks first, and its red/blue spread on both sides is the non-monotonic effe
 
 Each dot is one cat; x-position is the feature's push (right = toward long-stay, left = toward faster exit); color is the feature's value (for age, red = older; for 0/1 features, red = present).  
 
-Age ranks first with a non-monotonic red/blue spread. Sex_Unknown: present (red) pushes strongly left; These intakes are overwhelmingly newborn kittens (median age 22 days) transferred out on day 0 (~86% transfer, ~0% adoption), likely too young to be sexed at intake, and routed straight to foster/rescue rather than entering the shelter pipeline. In contrast, Owner-surrender, nursing and injured push toward long-stay.
+Age ranks first (mean |SHAP| 0.70) with a non-monotonic red/blue spread — in the current model it is followed by Sex_Unknown (0.37), then **`intake_year` (0.21)** and **`intake_month` (0.13)**, both added after this figure was rendered. Sex_Unknown: present (red) pushes strongly left; These intakes are overwhelmingly newborn kittens (median age 22 days) transferred out on day 0 (~86% transfer, ~0% adoption), likely too young to be sexed at intake, and routed straight to foster/rescue rather than entering the shelter pipeline. In contrast, Owner-surrender, nursing and injured push toward long-stay.
 
 
 <br clear="left"/>
@@ -186,23 +228,28 @@ In EDA we can see the age effect is *non-monotonic* for both dog and cat: the yo
 
 ### Model & methodology
 
-- **Precision at the operating threshold is ≈0.42 (XGBoost).**
-  The thresholds maximize
-  F1 on pooled 2022–2023 out-of-sample predictions, but the resulting operating point is
-  recall-heavy. On the 2024 test fold, XGBoost reaches recall 0.716 (dog) / 0.748 (cat)
-  at precision 0.424 / 0.419. In practice, roughly 2 of every 5 flagged animals actually
-  become long-stays, and for a shelter with limited staff the false positives are a real
-  operational cost. Since shelter capacity was unknown when the threshold was set, *recall
-  and precision can be re-balanced to match actual operational needs.*
+- **`precision = 0.8` is out of reach at any usable operating point.** At the 20% flag rate, precision
+  is 0.54 (dog) / 0.61 (cat); even flagging only the top 1% of the ranking tops out near 0.77 (dog) /
+  0.78 (cat). That is a ceiling set by model strength and by a 30% base rate, and no threshold choice
+  moves it. Recall 0.8 *is* reachable, but costs flagging 53% of all dogs at precision 0.45.
 
-- **The 2023 dog regime shift is unexplained, and the base rate keeps drifting.**  
-  The dog long-stay rate jumped structurally in 2023 and dog XGBoost AUC dropped from 0.766
-  to 0.694; none of the recorded intake fields explain the shift, so the dog model is
-  less stable than the cat model.
+- **Predicted probabilities are not trustworthy, and `intake_year` made that worse.** Per-fold class
+  weighting already distorted calibration; adding `intake_year` pushed the dog 2024 Brier from 0.204 to
+  0.279, with a mean predicted probability of 0.60 against a true rate of 0.30 — and the inflation grows
+  the further ahead you forecast. This is why the operating point is a **percentile, not a probability**.
+  Use the ranking; never read a raw probability as a likelihood.
 
-- **Only intake-day information is used (7 features per species).** No behavioral
+- **`intake_year` buys ranking on the recent folds but costs the 2022 fold.** Measured on the back-test
+  it is −0.003 on 2022 (which trains through 2021, still a COVID-shaped year, so specialising on it
+  hurts) against +0.013 on 2023 and +0.009 on 2024. A deliberate trade in favour of the recent folds.
+
+- **The 2023 dog break is diagnosed but not fully explained.** Appendix 1 narrows it to an
+  adoption-pathway slowdown and rules out a general shelter jam, but *why* adoption slowed is not
+  answerable from this export. The dog model remains less stable than the cat model.
+
+- **Only intake-day information is used (10 features for dogs, 9 for cats).** No behavioral
   assessments, photos, or any post-intake signal. This is by design (the model must
-  score an animal on day one), but it likely sets the AUC ceiling at ~0.70–0.75.
+  score an animal on day one), but it likely sets the AUC ceiling at ~0.75–0.80.
 
 
 ### Data & scope
@@ -226,18 +273,24 @@ Building a data bridge between the legacy and modern systems. By developing a cr
 
 - **Post-intake signals** — *to addresses "only intake-day information is used".*  
   The model deliberately scores an animal on day one, which likely caps AUC at
-  ~0.70–0.75. If later signals (behavioral assessments, medical updates, photos)
+  ~0.75–0.80. If later signals (behavioral assessments, medical updates, photos)
   were incorporated as they arrive, a second-stage model could refine the day-one
   flag for animals still in the shelter.
 
 - **Length of stay prediction**  
 The current target collapses time-to-exit into a single yes/no at 30 days. A separate regression, trained on animals with an observed length of stay, would predict the actual number of days, creating a finer signal for triage than the binary flag.
 
-- **Drift monitoring and threshold re-tuning** — *addresses "the base rate keeps drifting".*  
-  The long-stay base rate moves year to year
-  (24.6% → 30.7% → 29.7%), and the pipeline currently has no way to notice. Adding a
-  base-rate / PSI drift check on incoming data, plus a scheduled re-tune of the
-  operating threshold.
+- **Adoption-side data** — *addresses the one gap Appendix 1 could not close.*  
+  The 2023 break traces to the adoption pathway specifically, but this export holds no adopter
+  counts, foot traffic, time-to-listing or adoption-event calendars. Those fields are what would
+  turn "adoption slowed" into an explanation, and they would likely absorb the drift the model
+  currently cannot see.
+
+- **Drift monitoring** — *addresses "the base rate keeps drifting".*  
+  The long-stay base rate moves year to year (23.8% → 21.7% → 24.6% → 30.7% → 29.7% across the five test folds), and the pipeline has no way
+  to notice. A base-rate / PSI drift check on incoming data would catch it. The operating point
+  itself no longer needs re-tuning: `FLAG_RATE` is a percentile, so it holds its meaning as scores
+  drift.
 
 
 ## 8. Lessons learned
@@ -259,9 +312,11 @@ When I switched the target from is_adopted to is_long_stay, I kept the original 
 
 | Notebook | What it does |
 |----------|--------------|
-| **01_cleaning** | Aligns both raw exports to a shared snake_case schema; normalises mixed-timezone dates; backward `merge_asof` join of each outcome to its most recent prior intake; drops orphans/duplicates; parses sex/breed/colour; engineers the `is_long_stay` target and intake-time features; filters to dogs & cats → `df_full_merged.csv` (162,932 rows). |
+| **01_cleaning** | Audits every raw column as drop-down vs free text (which is how `Breed` was caught as free text carrying 236 colour values); aligns both raw exports to a shared snake_case schema; normalises mixed-timezone dates; backward `merge_asof` join of each outcome to its most recent prior intake; drops orphans/duplicates; parses sex/breed/colour; engineers the `is_long_stay` target and intake-time features; filters to dogs & cats → `df_full_merged.csv` (162,932 rows). |
 | **02_eda** | Per-species univariate, bivariate (long-stay rate by feature), and temporal analysis; correlation heatmaps and mutual-information screening against the target. EDA only — no modelling. |
-| **03_modeling** | Time-aware folds; per-species Logistic Regression + XGBoost; feature ablations on the validation fold; back-test on 2024; threshold selection; confusion matrices; SHAP interpretation; exports the headline XGBoost model (reference fold, train ≤ 2023) per species to `models/`. |
+| **03_modeling** | Time-aware folds; per-species Logistic Regression + XGBoost; feature ablations on both decision folds (2022, 2023); five-fold back-test with the headline on 2024; `FLAG_RATE` operating point; confusion matrices; SHAP interpretation; Appendix 1's diagnosis of the 2023 dog break. Model export is gated behind `EXPORT_MODELS`, currently **off**. |
+
+> **`models/` is stale.** The exported artefacts predate `breed_size`, `intake_year`, the top-60 breed cap and the `FLAG_RATE` rule, so they do not reproduce the numbers in this README. Set `EXPORT_MODELS = True` in `03_modeling.ipynb` and re-run to refresh them.
 
 ```
 .
@@ -290,12 +345,6 @@ pip install -r requirements.txt   # or: pandas numpy scikit-learn xgboost shap m
 # run notebooks in order: 01 → 02 → 03
 # 01 writes data/processed/df_full_merged.csv, which 02 and 03 both read.
 ```
-
-> ⚠️ **Filename convention — don't rename these.** `01_cleaning.ipynb` reads the two raw
-> files by their **exact paths** via `FULL_INTAKES_PATH` / `FULL_OUTCOMES_PATH`. Each filename carries a
-> **date-stamp suffix** `_20260523`. If you re-export fresh data from the portal, that date
-> stamp will differ and the notebook will fail to find the file — either rename the new
-> export to match, or edit those two path variables in `01_cleaning.ipynb`.
 
 ### Reproducibility
 
