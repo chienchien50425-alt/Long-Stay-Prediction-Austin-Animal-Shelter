@@ -338,55 +338,7 @@ When I switched the target from is_adopted to is_long_stay, I kept the original 
 └── requirements.txt        # pinned dependencies (Python 3.13)
 ```
 
-**Reproducing:**
-
-No data download is required — both raw CSVs are already committed under
-[`data/raw_dataset/`](data/raw_dataset/) (**license: Public Domain**, City of Austin Open
-Data Portal). Install the dependencies and run the notebooks in order:
-
-```bash
-pip install -r requirements.txt   # or: pandas numpy scikit-learn xgboost shap matplotlib seaborn
-# run notebooks in order: 01 → 02 → 03
-# 01 writes data/processed/df_full_merged.csv, which 02 and 03 both read.
-```
-
-### Reproducibility
-
-The scope here is deliberately honest: results reproduce in **ranking and metrics** on the
-pinned environment, not guaranteed bit-for-bit across machines.
-
-- **Seed = 42.** `03_modeling.ipynb` fixes `RANDOM_STATE = 42` (and `np.random.seed(42)`),
-  and passes it to XGBoost — both the inner-CV models and the final refit — to the SHAP
-  background sampling, and to the mutual-information screening in `02_eda.ipynb`
-  (`mutual_info_classif(..., random_state=42)`). Those steps are reproducible run-to-run.
-- **LogisticRegression is *not* explicitly seeded.** It is built as
-  `LogisticRegression(max_iter=2000, C=1.0, class_weight='balanced')` with no `random_state`.
-  Its default `lbfgs` solver is deterministic, so results are stable.
-- **Numerical reproducibility depends on the pinned environment** — Python 3.13,
-  `pandas==3.0.0`, `numpy==2.4.1` (`03_modeling` was run locally on this stack). Cleaning was
-  done on **pandas 3.0**, and pandas changed `merge_asof` and timezone-parsing behaviour
-  across major versions, so running the cleaning step on **pandas 2.x may yield a different
-  post-merge row count**, which then propagates downstream.
-- **Multi-threaded XGBoost.** XGBoost runs with `n_jobs=4` and `tree_method='hist'`.
-  Multi-threaded floating-point summation is not guaranteed bit-for-bit identical across
-  hardware, so metrics and rankings reproduce but the exact digits may differ machine to
-  machine.
-
 ---
-
-## License & citation
-
-- **Code:** MIT License — see [LICENSE](LICENSE). Original work by Wei Ling Chien.
-- **Data:** City of Austin Open Data Portal — Animal Center *Intakes* & *Outcomes*,
-  **Public Domain**. Retrieved 2026-05-23. The data license is separate from the code
-  license: the code is MIT, the underlying data is public domain and not covered by MIT.
-
-**How to cite:**
-
-```
-Wei Ling Chien (2026). Predicting Long-Stay Shelter Animals — Austin Animal Center.
-GitHub: https://github.com/chienchien50425-alt/austin-animal-center
-```
 
 **Acknowledgements:** City of Austin and Austin Animal Center for publishing the open
 intake and outcome data that makes this project possible.
