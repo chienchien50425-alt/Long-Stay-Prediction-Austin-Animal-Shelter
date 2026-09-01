@@ -91,11 +91,9 @@ Across the full five-fold back-test — each year predicted by a model trained o
 Cats are stable across every fold; dogs sat on a plateau near 0.79 and then broke in 2023 (see §4). Only
 2024 is held out — 2022 and 2023 set the features and the operating point, and 2020/2021 are trace-only.
 
-| <img width="500" alt="Test AUC by fold" src="reports/figures/fig1_auc_by_fold.png" /> | <img width="500" alt="Confusion matrices, 2024 test fold" src="reports/figures/fig2_confusion_2024.png" /> |
+| <img width="250" alt="Test AUC by fold" src="reports/figures/fig1_auc_by_fold.png" /> | <img width="600" alt="Confusion matrices, 2024 test fold" src="reports/figures/fig2_confusion_2024.png" /> |
 | :---: | :---: |
 | Figure 1. Test AUC by fold (2020–2024), per species and model. | Figure 2. Confusion matrices on the 2024 test fold, at the max-F1 threshold. |
-
-> Figures 1, 2, 4, 5 and 6 are exported straight from the current notebook runs into [`reports/figures/`](reports/figures/), so they match the tables above. Figure 3 is a hand-drawn pipeline diagram. Re-run `03_modeling.ipynb` (or `02_eda.ipynb` for Figure 6) and re-export to refresh them.
 
 ---
 
