@@ -69,12 +69,12 @@ For the technically inclined, here are the underlying numbers, tested on a held-
 
 Across the full five-fold back-test — each year predicted by a model trained only on the years before it:
 
-| Species / model | 2020 | 2021 | 2022 | 2023 | 2024 | mean ± std |
-|---|---|---|---|---|---|---|
-| Dog · XGBoost | 0.791 | 0.796 | 0.786 | 0.727 | 0.747 | 0.769 ± 0.031 |
-| Dog · Logistic Reg. | 0.774 | 0.779 | 0.756 | 0.672 | 0.681 | 0.733 ± 0.052 |
-| Cat · XGBoost | 0.744 | 0.740 | 0.741 | 0.749 | 0.758 | 0.746 ± 0.007 |
-| Cat · Logistic Reg. | 0.695 | 0.690 | 0.698 | 0.711 | 0.712 | 0.701 ± 0.010 |
+| Species / model | 2020 | 2021 | 2022 | 2023 | 2024 | 
+|---|---|---|---|---|---|
+| Dog · XGBoost | 0.791 | 0.796 | 0.786 | 0.727 | 0.747 |
+| Dog · Logistic Reg. | 0.774 | 0.779 | 0.756 | 0.672 | 0.681 |
+| Cat · XGBoost | 0.744 | 0.740 | 0.741 | 0.749 | 0.758 |
+| Cat · Logistic Reg. | 0.695 | 0.690 | 0.698 | 0.711 | 0.712 |
 
 | <img width="250" alt="Test AUC by fold" src="reports/figures/fig1_auc_by_fold.png" /> | <img width="600" alt="Confusion matrices, 2024 test fold" src="reports/figures/fig2_confusion_2024.png" /> |
 | :---: | :---: |
@@ -173,20 +173,17 @@ Age ranks first with a non-monotonic red/blue spread. Sex_Unknown is the longest
 <br><br>
 
 
----
-
 ## 6. 2023 AUC Drop Deep Dive
 
   1. **Is the model outdated?** → 76% of the decline is because the underlying shelter data actually became harder to predict (real signal loss). Proved this by comparing two different testing methods:
   - The Standard Test (Walk-Forward): When we train a model on past data to predict the future, we saw a total performance drop of 0.059 between 2022 and 2023.
   - The Up-to-Date Test (In-Year Oracle): Even with the perfectly up-to-date "In-Year Oracle" model, performance still dropped by 0.045 (from 0.818 in 2022 to 0.773 in 2023).
-  2. **What got worse?  The dogs the model called safe stopped being safe.** Scoring both years with one model (train ≤ 2021), the mean score for long-stay dogs fell 0.630 → 0.582 while fast dogs rose 0.380 → 0.409, narrowing the gap AUC measures +0.250 → +0.173. In the lowest-risk quartile the actual long-stay rate x4 (3.0% → 12.5%). A low score stopped meaning "this one leaves fast".
+  2. **What got worse?  The dogs the model called safe stopped being safe.** Scoring both years with one model (train ≤ 2021), the mean score for long-stay dogs fell 0.630 → 0.582 while fast dogs rose 0.380 → 0.409, narrowing the gap AUC measures +0.250 → +0.173. In the lowest-risk quartile the actual long-stay rate x4 (3.0% → 12.5%), while the top quartile barely moved (48.4% → 51.0%).
   3. **Which way out got slower? → Adoption** (table below). Adoption went from 14 days to 27, but Transfer got faster (7 → 4) and Return to Owner barely moved.
-  5. **Is it a big-dog problem?** → **No — big and small slowed by the same ~1.9×** (16 → 30 and 7 → 13 days). Size only set how close a dog already sat to the fixed 30-day line; at 30 days, big dogs land exactly on it. The 21–45 day boundary band thickened 13% → 19%, so labels there turn on a few days of luck. *(A1.5)*
-  6. **Does the fixed 30-day cut-off manufacture the effect?** → **No.** Re-scored against a *relative* label (each year's longest 30%), in-year AUC still runs 0.805 / 0.805 / **0.779** / 0.774. The cut-off amplifies a real change; it does not invent one. *(A1.5)*
-  7. **What is still unexplained?** → **Why adoption slowed.** Not answerable from this export — no adopter counts, foot traffic, listing dates or policy records. *(A1.6)*
+  5. **Is it a big-dog problem?** → Adoption wait times doubled equally for all dogs: 16 to 30 days for large dogs and 7 to 13 days for small dogs. This universal slowdown pushed far more dogs to the 30-day boundary, degrading the model's accuracy because the difference between a fast exit and a long stay now often comes down to unpredictable daily luck.
+  6. **What is still unexplained?** → **Why adoption slowed.** Not answerable from this export: no adopter counts, foot traffic, listing dates or policy records.
 
-  **Median days to exit, dogs, by outcome** (rows ordered by 2023 share of exits):
+  **Median days to exit, dogs, by outcome**:
 
   | outcome | 2021 | 2022 | **2023** | 2024 | Δ 2022→2023 | 2023 share of exits |
   |---|---|---|---|---|---|---|
@@ -196,41 +193,12 @@ Age ranks first with a non-monotonic red/blue spread. Sex_Unknown is the longest
   | Rto-Adopt | 7 | 10 | 12 | 8 | +2 d | 1.6% |
   | Euthanasia | 4 | 4 | 7.5 | 8 | +3.5 d | 1.5% |
 
-  Read the **days**, not the ratios: as a ratio Euthanasia (4 → 7.5) and Return-to-Owner (1 → 2) also look like ~2×, which would suggest everything slowed together. Against a 30-day threshold only Adoption moves far enough to matter — and Transfer moves the *wrong way* for a shelter-wide jam. Cats, whose AUC never broke, show a much smaller adoption drift over the same window (20 → 22 → 26 → 25 days).
-
-  *Caveats:* still-in-shelter rows are excluded (their LOS is a censored lower bound), and each median conditions on dogs that *ultimately* took that route — transfer's share fell 0.267 → 0.211, so some fast-transfer dogs moved into the slower adoption route and inflate its median by an unmeasured amount.
-
----
 ## 7. Limitations
 
 ### Model & methodology
 
-- **Half of all future long-stay animals are missed at the chosen flag rate.** Recall is 0.51 (dog) /
-  0.56 (cat) — a capacity choice rather than a model ceiling (flagging 50% would catch 77% of
-  long-stay dogs, at precision 0.46), but it does mean the flag is a triage aid, not a safety net.
-  Separately, **`precision = 0.8` is out of reach at any operating point**: even the top 1% of the
-  ranking tops out near 0.77 (dog) / 0.78 (cat), a ceiling set by model strength and a 30% base rate.
-
-- **The trailing window tracks the target share only loosely.** Because the threshold comes from the
-  previous 90 days rather than the cohort being scored, the realised share lands between 27% and 33%
-  rather than exactly 30%. The first 90 days of any year are also ranked against animals inside the
-  model's training set, whose sharper in-sample scores bias the early threshold slightly high.
-
-- **Predicted probabilities are not trustworthy, and `intake_year` makes that worse.** Per-fold class
-  weighting distorts calibration; `intake_year` pushes the dog 2024 Brier from 0.204 to 0.279, with a
-  mean predicted probability of 0.60 against a true rate of 0.30, and the inflation grows the further
-  ahead you forecast. This is why the operating point is a **moving percentile, not a probability** —
-  a rank rule is unaffected by inflation that shifts every score together. The stored `threshold` is
-  only the median of that moving cut-off: recompute the percentile over the trailing window each time
-  you score, and never read a raw probability as a likelihood.
-
-- **`intake_year` buys ranking on the recent folds but costs the 2022 fold.** Measured on the back-test
-  it is −0.003 on 2022 (which trains through 2021, still a COVID-shaped year, so specialising on it
-  hurts) against +0.013 on 2023 and +0.009 on 2024. A deliberate trade in favour of the recent folds.
-
 - **The 2023 dog break is diagnosed but not fully explained.** Appendix 1 narrows it to an
-  adoption-pathway slowdown and rules out a general shelter jam, but *why* adoption slowed is not
-  answerable from this export. The dog model remains less stable than the cat model.
+  adoption-pathway slowdown and rules out a general shelter jam, but *why* adoption slowed is not answerable from this export. The dog model remains less stable than the cat model.
 
 - **Only intake-day information is used (10 features for dogs, 9 for cats).** No behavioral
   assessments, photos, or any post-intake signal. This is by design (the model must
@@ -249,7 +217,6 @@ Per the Austin Animal
   adoption. Some long stays may therefore reflect legal holds or ineligibility rather
   than low adoption appeal, and the model cannot distinguish the two.
 
----
 
 ## 8. Future work
 
@@ -268,7 +235,7 @@ Building a data bridge between the legacy and modern systems. By developing a cr
   turn "adoption slowed" into an explanation, and they would likely absorb the drift the model
   currently cannot see.
 
-## 8. Lessons learned
+## 9. Lessons learned
 
 - **I didn't fully understand the business problem in the beginning**  
 My initial instinct was to predict whether an animal would be adopted. Only when writing the report did I realize this missed the shelter's real pain point: limited space and capacity, where the true strain comes from animals that stay stuck for a long time. I therefore redefined the target from is_adopted to is_long_stay, shifting the focus from "Will this animal be adopted?" to "Will it occupy space long-term, so staff can intervene early?"
@@ -291,7 +258,6 @@ When I switched the target from is_adopted to is_long_stay, I kept the original 
 | **02_eda** | Per-species univariate, bivariate (long-stay rate by feature), and temporal analysis; correlation heatmaps and mutual-information screening against the target. EDA only — no modelling. |
 | **03_modeling** | Time-aware folds; per-species Logistic Regression + XGBoost; feature ablations on both decision folds (2022, 2023); five-fold back-test with the headline on 2024; `FLAG_RATE` operating point; confusion matrices; SHAP interpretation; Appendix 1's diagnosis of the 2023 dog break; exports the headline models to `models/`. |
 
-> **`models/`.** The artefacts are written from the *same* fitted objects §8 evaluates — nothing is refit on export — so they reproduce the numbers in this README exactly; the notebook asserts it by reloading each bundle and comparing probabilities. They are gitignored (regenerable), so run `03_modeling.ipynb` to recreate them locally. Each species gets a `.joblib` bundle (pipeline + threshold rule + card), a native `_booster.json`, and a standalone `_card.json`.
 
 ```
 .
@@ -304,7 +270,7 @@ When I switched the target from is_adopted to is_long_stay, I kept the original 
 │   ├── 01_cleaning.ipynb
 │   ├── 02_eda.ipynb
 │   └── 03_modeling.ipynb
-├── LICENSE                 # MIT License (covers the code)
+├── LICENSE                 
 ├── README.md
 └── requirements.txt        # pinned dependencies (Python 3.13)
 ```
