@@ -180,8 +180,8 @@ Age ranks first with a non-monotonic red/blue spread. Sex_Unknown is the longest
   - The Up-to-Date Test (In-Year Oracle): Even with the perfectly up-to-date "In-Year Oracle" model, performance still dropped by 0.045 (from 0.818 in 2022 to 0.773 in 2023).
   2. **What got worse?  The dogs the model called safe stopped being safe.** Scoring both years with one model (train ≤ 2021), the mean score for long-stay dogs fell 0.630 → 0.582 while fast dogs rose 0.380 → 0.409, narrowing the gap AUC measures +0.250 → +0.173. In the lowest-risk quartile the actual long-stay rate x4 (3.0% → 12.5%), while the top quartile barely moved (48.4% → 51.0%).
   3. **Which way out got slower? → Adoption** (table below). Adoption went from 14 days to 27, but Transfer got faster (7 → 4) and Return to Owner barely moved.
-  5. **Is it a big-dog problem?** → Adoption wait times doubled equally for all dogs: 16 to 30 days for large dogs and 7 to 13 days for small dogs. This universal slowdown pushed far more dogs to the 30-day boundary, degrading the model's accuracy because the difference between a fast exit and a long stay now often comes down to unpredictable daily luck.
-  6. **What is still unexplained?** → **Why adoption slowed.** Not answerable from this export: no adopter counts, foot traffic, listing dates or policy records.
+  4. **Is it a big-dog problem?** → Adoption wait times doubled equally for all dogs: 16 to 30 days for large dogs and 7 to 13 days for small dogs. This universal slowdown pushed far more dogs to the 30-day boundary, degrading the model's accuracy because the difference between a fast exit and a long stay now often comes down to unpredictable daily luck.
+  5. **What is still unexplained?** → **Why adoption slowed.** Not answerable from this export: no adopter counts, foot traffic, listing dates or policy records.
 
   **Median days to exit, dogs, by outcome**:
 
