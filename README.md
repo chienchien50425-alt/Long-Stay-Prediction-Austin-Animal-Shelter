@@ -122,7 +122,7 @@ Long-stay cases are the minority class (by intake year over the full years 2014�
 | Feature handling | Dog | Cat | Where decided |
 |---|---|---|---|
 | Selected feature set | intake reason, breed, **`breed_size`**, health condition, sex, age, `is_sn`, `is_mix`, intake month, intake year (10) | same minus `breed_size` (9) | MI screening, then back-test ablation |
-| `breed_size` (small <25 lbs / big) | **added**, −0.002 / +0.007 / +0.009 AUC on the 2022 / 2023 / 2024 folds | **not used** | External domain knowledge |
+| `breed_size` (small <25 lbs / big) | **added** | **not used** | ablation test |
 | Breed encoding | top-**60** + Other | top-4 + Other | cat top 4 cover ~90% population |
 | Age (XGBoost) | raw `age_at_intake_days` | same |  |
 | Age (Logistic Reg.) | 8 buckets: <2mo … 15yr+ | same | EDA |
