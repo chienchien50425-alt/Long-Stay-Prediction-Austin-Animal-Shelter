@@ -76,7 +76,7 @@ Across the full five-fold back-test — each year predicted by a model trained o
 | Cat · XGBoost | 0.744 | 0.740 | 0.741 | 0.749 | 0.758 |
 | Cat · Logistic Reg. | 0.695 | 0.690 | 0.698 | 0.711 | 0.712 |
 
-| <img width="250" alt="Test AUC by fold" src="reports/figures/fig1_auc_by_fold.png" /> | <img width="600" alt="Confusion matrices, 2024 test fold" src="reports/figures/fig2_confusion_2024.png" /> |
+| <img width="300" alt="Test AUC by fold" src="reports/figures/fig1_auc_by_fold.png" /> | <img width="600" alt="Confusion matrices, 2024 test fold" src="reports/figures/fig2_confusion_2024.png" /> |
 | :---: | :---: |
 | Figure 1. Test AUC by fold (2020–2024), per species and model. | Figure 2. Confusion matrices on the 2024 test fold, at the rolling 90-day operating point. |
 
