@@ -278,47 +278,6 @@ When I switched the target from is_adopted to is_long_stay, I kept the original 
 ├── README.md
 └── requirements.txt        # pinned dependencies (Python 3.13)
 ```
-
-**Reproducing:**
-
-No data download is required — both raw CSVs are already committed under
-[`data/raw_dataset/`](data/raw_dataset/) (**license: Public Domain**, City of Austin Open
-Data Portal). Install the dependencies and run the notebooks in order:
-
-```bash
-pip install -r requirements.txt   # or: pandas numpy scikit-learn xgboost shap matplotlib seaborn
-# run notebooks in order: 01 → 02 → 03
-# 01 writes data/processed/df_full_merged.csv, which 02 and 03 both read.
-```
-
-> ⚠️ **Filename convention — don't rename these.** `01_cleaning.ipynb` reads the two raw
-> files by their **exact paths** via `FULL_INTAKES_PATH` / `FULL_OUTCOMES_PATH`. Each filename carries a
-> **date-stamp suffix** `_20260523`. If you re-export fresh data from the portal, that date
-> stamp will differ and the notebook will fail to find the file — either rename the new
-> export to match, or edit those two path variables in `01_cleaning.ipynb`.
-
-### Reproducibility
-
-The scope here is deliberately honest: results reproduce in **ranking and metrics** on the
-pinned environment, not guaranteed bit-for-bit across machines.
-
-- **Seed = 42.** `03_modeling.ipynb` fixes `RANDOM_STATE = 42` (and `np.random.seed(42)`),
-  and passes it to XGBoost — both the inner-CV models and the final refit — to the SHAP
-  background sampling, and to the mutual-information screening in `02_eda.ipynb`
-  (`mutual_info_classif(..., random_state=42)`). Those steps are reproducible run-to-run.
-- **LogisticRegression is *not* explicitly seeded.** It is built as
-  `LogisticRegression(max_iter=2000, C=1.0, class_weight='balanced')` with no `random_state`.
-  Its default `lbfgs` solver is deterministic, so results are stable.
-- **Numerical reproducibility depends on the pinned environment** — Python 3.13,
-  `pandas==3.0.0`, `numpy==2.4.1` (`03_modeling` was run locally on this stack). Cleaning was
-  done on **pandas 3.0**, and pandas changed `merge_asof` and timezone-parsing behaviour
-  across major versions, so running the cleaning step on **pandas 2.x may yield a different
-  post-merge row count**, which then propagates downstream.
-- **Multi-threaded XGBoost.** XGBoost runs with `n_jobs=4` and `tree_method='hist'`.
-  Multi-threaded floating-point summation is not guaranteed bit-for-bit identical across
-  hardware, so metrics and rankings reproduce but the exact digits may differ machine to
-  machine.
-
 ---
 
 ## License & citation
