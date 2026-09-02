@@ -246,7 +246,7 @@ When I switched the target from is_adopted to is_long_stay, I kept the original 
 
 ---
 
-## 9. Pipeline & repository
+## 10. Pipeline & repository
 
 ```
 01_cleaning.ipynb  →  02_eda.ipynb  →  03_modeling.ipynb
