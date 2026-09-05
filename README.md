@@ -25,7 +25,7 @@ This is framed as a binary classification task with target is_long_stay (1 = sta
 ## 2. The data
 
 Everything here is built on Austin Animal Center's own public records, published on the
-[City of Austin Open Data Portal](https://data.austintexas.gov/). The shelter logs two things:
+City of Austin Open Data Portal. The shelter logs two things:
 every animal that comes **in** (an *intake* record) and every animal that leaves, for any
 reason (an *outcome* record). This project uses the full history from **October 2013 to May
 2025** — roughly 174,000 intake events and 174,000 outcome events.
