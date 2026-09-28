@@ -198,7 +198,7 @@ Age ranks first with a non-monotonic red/blue spread. Sex_Unknown is the longest
 
 ### Model & methodology
 
-- **The 2023 dog break is diagnosed but not fully explained.** Appendix 1 narrows it to an
+- **The 2023 dog break is diagnosed but not fully explained.** We narrow it to an
   adoption-pathway slowdown and rules out a general shelter jam, but *why* adoption slowed is not answerable from this export. The dog model remains less stable than the cat model.
 
 - **Only intake-day information is used (10 features for dogs, 9 for cats).** No behavioral
