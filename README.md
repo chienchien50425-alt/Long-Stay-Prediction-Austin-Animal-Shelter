@@ -14,7 +14,7 @@
 
 ## 1. The problem
 
-Austin Animal Center is a large open-intake municipal shelter. It has been facing constant overcapacity and prolonged kennel stays since 2021, due to a pandemic-related decline in adoptions and spay/neuter procedures. Animals that stay a long time consume kennel space, staff hours, and medical cost.
+Austin Animal Center is a large open-intake municipal shelter. It has been facing constant overcapacity. Animals that stay a long time consume kennel space, staff hours, and medical cost.
 
 The question this project answers: using only what is known the day an animal walks in, can we predict whether it will become a long-stay (>30 days) case? A reliable early flag lets staff prioritise foster placement, targeted marketing, or behavioural support before an animal lingers.
 
