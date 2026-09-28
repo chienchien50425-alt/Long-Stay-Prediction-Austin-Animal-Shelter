@@ -137,6 +137,7 @@ Long-stay cases are the minority class (by intake year over the full years 2014�
 | Operating point | top **30%** of the trailing **90 days** | same |
 | Class imbalance | per-fold `scale_pos_weight` (XGB) / balanced weights (LR) | same |
 | XGBoost tuning grid | depth ∈ {3, 5}, lr ∈ {0.03, 0.1}, n_estimators ≤ 800, early stop 30 | same |
+| XGBoost selected (2024 model) | depth 5, lr 0.1, 285 trees | depth 5, lr 0.03, 348 trees |
 | Logistic Reg. | L2, C = 1.0, max_iter = 2000 | same |
 | Back-test folds | test years 2020–2024 | same | Rolling-origin |
 | Validation / test fold | feature decisions on 2022 **and** 2023; the operating point is a policy rule (top 30% / 90 days); headline on 2024 | same | 2024 never used for selection/tuning |
