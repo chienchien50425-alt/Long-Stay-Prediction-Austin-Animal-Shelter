@@ -230,7 +230,7 @@ Building a data bridge between the legacy and modern systems. By developing a cr
   were incorporated as they arrive, a second-stage model could refine the day-one
   flag for animals still in the shelter.
 
-- **Adoption-side data** — *addresses the one gap Appendix 1 could not close.*  
+- **Adoption-side data**  
   The 2023 break traces to the adoption pathway specifically, but this export holds no adopter
   counts, foot traffic, time-to-listing or adoption-event calendars. Those fields are what would
   turn "adoption slowed" into an explanation, and they would likely absorb the drift the model
